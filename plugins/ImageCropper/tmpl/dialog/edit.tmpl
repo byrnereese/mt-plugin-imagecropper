@@ -1,0 +1,80 @@
+<mt:setvarblock name="page_title"><mt:var name="id"><__trans phrase="Edit Thumbnail Prototype"><mt:else><__trans phrase="Create Thumbnail Prototype"></mt:if></mt:setvarblock>
+<mt:setvarblock name="html_head" append="1">
+<link rel="stylesheet" href="<mt:var name="static_uri">plugins/ImageCropper/css/app.css" type="text/css" />
+</mt:setvarblock>
+<mt:include name="dialog/header.tmpl">
+
+<form method="post" action="<mt:var name="script_url">" target="_top">
+<input type="hidden" name="__mode" value="save_prototype" />
+<input type="hidden" name="blog_id" value="<mt:var name="blog_id">" />
+<input type="hidden" name="id" value="<mt:var name="id">" />
+
+<mtapp:setting
+    id="label"
+    label_class="top-label"
+    label="<__trans phrase="Label">"
+    hint="Enter in a very short label that will be used to help you identify any thumbnail derived from this prototype."
+    show_hint="1">
+      <input id="label" type="text" name="label" value="<mt:var name="label" />" class="full-width" />
+</mtapp:setting>
+
+<mtapp:setting
+    id="pattern"
+    label_class="top-label"
+    label="<__trans phrase="Max Width">"
+    hint="Enter in the max width of the thumbnail."
+    show_hint="1">
+      <input id="max_width" type="text" name="max_width" value="<mt:var name="max_width" />" /><br />
+</mtapp:setting>
+
+<mtapp:setting
+    id="pattern"
+    label_class="top-label"
+    label="<__trans phrase="Max Height">"
+    hint="Enter in the max height of the thumbnail."
+    show_hint="1">
+      <input id="max_height" type="text" name="max_height" value="<mt:var name="max_height" />" /><br />
+</mtapp:setting>
+
+<mt:ignore>
+<mtapp:setting
+    id="pattern_type"
+    label_class="top-label"
+    label="<__trans phrase="Pattern">"
+    show_label="0"
+    show_hint="1">
+      <input type="checkbox" id="opts_regex" name="regex" value="1" <mt:if name="regex">checked </mt:if>/> <label for="opts_regex">Regular Expression</label>
+      &nbsp;&nbsp;
+      <input type="checkbox" id="opts_global" name="global" value="1" <mt:if name="global">checked </mt:if>/> <label for="opts_global">Link all occurences</label>
+      &nbsp;&nbsp;
+      <input type="checkbox" id="opts_case" name="case" value="1" <mt:if name="case">checked </mt:if>/> <label for="opts_case">Case Insensitive?</label>
+</mtapp:setting>
+
+<mtapp:setting
+    id="url"
+    label_class="top-label"
+    label="<__trans phrase="Destination URL">"
+    show_hint="0">
+      <input id="url" type="text" name="url" value="<mt:var name="destination" />" class="full-width" />
+</mtapp:setting>
+</mt:ignore>
+
+<div class="actions-bar">
+    <div class="actions-bar-inner pkg actions">
+        <button
+            type="submit"
+            accesskey="s"
+            title="<__trans phrase="Continue">"
+            class="primary-button"
+            ><__trans phrase="Continue"></button>
+        <button
+            onclick="closeDialog(); return false"
+            type="submit"
+            accesskey="x"
+            title="<__trans phrase="Cancel (x)">"
+            ><__trans phrase="Cancel"></button>
+    </div>
+</div>
+
+</form>
+<mt:include name="dialog/footer.tmpl">
