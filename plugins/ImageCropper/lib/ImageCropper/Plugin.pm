@@ -90,4 +90,15 @@ sub list_prototypes {
     });
 }
 
+sub gen_thumbnails_start {
+    my ($app) = @_;
+    my ($params) = @_;
+    $params ||= {};
+    $app->validate_magic or return;
+    my $id = $app->param('id');
+    my $obj = MT->model('thumbnail_prototype')->load($id) or next;
+
+    return $app->load_tmpl( 'start.tmpl', $param );
+}
+
 1;

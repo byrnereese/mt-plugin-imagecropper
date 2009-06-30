@@ -20,3 +20,9 @@ applications:
       list_prototypes: $ImageCropper::ImageCropper::Plugin::list_prototypes
       edit_prototype: $ImageCropper::ImageCropper::Plugin::edit_prototype
       save_prototype: $ImageCropper::ImageCropper::Plugin::save_prototype
+    page_actions:
+      asset:
+        gen_thumbnails: 
+          label: 'Generate Thumbnails'
+          order: 100
+          code: $ImageCropper::ImageCropper::Plugin::gen_thumbnails_start
