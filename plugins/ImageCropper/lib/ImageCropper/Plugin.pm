@@ -7,12 +7,13 @@ use strict;
 
 use Carp qw( croak );
 use MT::Util qw( relative_date offset_time offset_time_list epoch2ts ts2epoch format_ts );
+use ImageCropper::Util qw( crop_filename crop_image );
 
 sub save_prototype {
     my $app = shift;
     my $param;
     my $q = $app->{query};
-    my $obj = MT->model('thumbnail_prototype')->load( $q->param('rule_id') );
+    my $obj = MT->model('thumbnail_prototype')->load( $q->param('id') );
     unless ($obj) { 
         $obj = MT->model('thumbnail_prototype')->new;
     }
@@ -91,14 +92,169 @@ sub list_prototypes {
 }
 
 sub gen_thumbnails_start {
-    my ($app) = @_;
-    my ($params) = @_;
-    $params ||= {};
+    my $app = shift;
+    my ($param) = @_;
+    $param ||= {};
     $app->validate_magic or return;
-    my $id = $app->param('id');
-    my $obj = MT->model('thumbnail_prototype')->load($id) or next;
+    my $id = $app->{query}->param('id');
+    my $obj = MT->model('asset')->load($id) or
+	return $app->error('Could not load asset.');
+    my @protos = MT->model('thumbnail_prototype')->load({ blog_id => $app->blog->id }) or
+	return $app->error('Could not load thumbnail prototypes.');
+    my @loop;
+    foreach my $p (@protos) {
+	push @loop, {
+	    proto_id    => $p->id,
+	    proto_label => $p->label,
+	    max_width   => $p->max_width,
+	    max_height  => $p->max_height,
+	};
+    }
+    $param->{prototype_loop} = \@loop if @loop;
+    my ($bw,$bh) = _box_dim($obj);
+    $param->{box_width}  = $bw;
+    $param->{box_height} = $bh;
 
-    return $app->load_tmpl( 'start.tmpl', $param );
+    my $tmpl = $app->load_tmpl( 'start.tmpl', $param );
+    my $ctx = $tmpl->context;
+    $ctx->stash('asset', $obj);
+    return $tmpl;
+}
+
+sub crop {
+    my $app = shift;
+
+    my $q = $app->param;
+    my $blog = $app->blog;
+
+    my $fmgr;
+    my $result;
+
+    my $X      = $q->param('x');
+    my $Y      = $q->param('y');
+    my $width  = $q->param('w');
+    my $height = $q->param('h');
+    my $id     = $q->param('id');
+    my $pid    = $q->param('prototype');
+
+    my $asset     = MT->model('asset')->load( $id );
+    my $prototype = MT->model('thumbnail_prototype')->load( $pid );
+
+    my $cropped   = crop_filename( $asset, 
+				   Width => $prototype->max_width,
+				   Height => $prototype->max_height,
+				   X => $X,
+				   Y => $Y,
+    );
+    my $cache_path; my $cache_url;
+    my $archivepath = $blog->archive_path;
+    my $archiveurl  = $blog->archive_url;
+    $cache_path = $cache_url = $asset->_make_cache_path( undef, 1 );
+    $cache_path =~ s!%a!$archivepath!;
+    $cache_url =~ s!%a!$archiveurl!;
+    my $cropped_path = File::Spec->catfile( $cache_path, $cropped );
+    MT->log({ blog_id => $blog->id, message => "Cropped filename: $cropped_path" });
+    my $cropped_url = $cache_url . '/' . $cropped;
+    MT->log({ blog_id => $blog->id, message => "Cropped URL: $cropped_url" });
+    my ( $base, $path, $ext ) =
+	File::Basename::fileparse( $cropped, qr/[A-Za-z0-9]+$/ );
+    my $asset_cropped = new MT::Asset::Image;
+    $asset_cropped->blog_id($blog->id);
+    $asset_cropped->url($cropped_url);
+    $asset_cropped->file_path($cropped_path);
+    $asset_cropped->file_name("$base$ext");
+    $asset_cropped->file_ext($ext);
+    $asset_cropped->image_width($prototype->max_width);
+    $asset_cropped->image_height($prototype->max_height);
+    $asset_cropped->created_by( $app->user->id );
+    $asset_cropped->label($app->translate("[_1] ([_2])", $asset->label || $asset->file_name, $prototype->label));
+    $asset_cropped->parent( $asset->id );
+    $asset_cropped->save;
+    
+    require MT::Image;
+    my $img = MT::Image->new( Filename => $asset->file_path )
+	or MT->log({ blog_id => $blog->id, message => "Error loading image: " . MT::Image->errstr });
+    my $data = crop_image($img, 
+			  Width  => $width,
+			  Height => $height,
+			  X      => $X,
+			  Y      => $Y,
+    );
+    $data = $img->scale( 
+	Width  => $prototype->max_width,
+	Height => $prototype->max_height,
+    );
+
+    require MT::FileMgr;
+    $fmgr ||= $blog ? $blog->file_mgr : MT::FileMgr->new('Local');
+    unless ($fmgr) {
+	MT->log({ blog_id => $blog->id, message => "Unable to initialize File Manager" });
+	return undef;
+    }
+    if ($cache_path =~ /^%r/) {
+	my $p = $blog->site_path;
+	$cache_path =~ s/%r/$p/;
+    }
+    unless ($fmgr->can_write($cache_path)) {
+	MT->log({ blog_id => $blog->id, message => "Can't write to: $cache_path" });
+	return undef;
+    }
+    my $error = '';
+    if (!-d $cache_path) {
+	MT->log({ blog_id => $blog->id, message => "$cache_path is NOT a directory. Creating..." });
+        require MT::FileMgr;
+        my $fmgr = $blog ? $blog->file_mgr : MT::FileMgr->new('Local');
+        unless ($fmgr->mkpath($cache_path)) {
+	    MT->log({ blog_id => $blog->id, message => "Can't mkpath: $cache_path" });
+	    return undef;
+	}
+    }
+
+    $fmgr->put_data( $data, 
+		     File::Spec->catfile( $cache_path, $cropped ), 
+		     'upload' )
+	or $error = MT->translate( "Error creating cropped file: [_1]", $fmgr->errstr );
+
+    if ($cropped_url =~ /^%r/) {
+	my $p = $blog->site_url;
+	$cropped_url =~ s/%r\/?/$p/;
+    }
+    $result = {
+	error        => $error,
+        proto_id     => $prototype->id,
+	cropped      => $cropped,
+	cropped_path => $cropped_path,
+	cropped_url  => $cropped_url,
+    };
+
+    return _send_json_response($app, $result);
+}
+
+
+sub _send_json_response {
+    my ($app,$result) = @_;
+    require JSON;
+    my $json = JSON::objToJson( $result );
+    $app->send_http_header("");
+    $app->print($json);
+    return $app->{no_print_body} = 1;
+    return undef;
+}
+
+sub _box_dim {
+    my ($obj) = @_;
+    my ($box_w,$box_h);
+    if ($obj->image_width > 900) {
+        #   x    h
+        #  --- = - => (900*h) / w = x 
+        #  900   w
+        $box_w = 900;
+        $box_h = int((900 * $obj->image_height) / $obj->image_width);
+    } else {
+	$box_w = $obj->image_width;
+	$box_h = $obj->image_height;
+    }
+    return ($box_w,$box_h);
 }
 
 1;

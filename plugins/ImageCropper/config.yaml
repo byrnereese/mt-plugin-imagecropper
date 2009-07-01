@@ -20,6 +20,7 @@ applications:
       list_prototypes: $ImageCropper::ImageCropper::Plugin::list_prototypes
       edit_prototype: $ImageCropper::ImageCropper::Plugin::edit_prototype
       save_prototype: $ImageCropper::ImageCropper::Plugin::save_prototype
+      imagecropper_crop: $ImageCropper::ImageCropper::Plugin::crop
     page_actions:
       asset:
         gen_thumbnails: 

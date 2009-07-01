@@ -1,0 +1,31 @@
+#prototypes li {
+  float: left; 
+  margin-right: 10px;
+  padding: 10px 7px;
+}
+#prototypes li.selected {
+  background-color: #DDDDEE;
+}
+#prototypes li .proto_preview {
+  width: 175px;
+  height: 135px; 
+  border: 1px solid #999;
+  background-color: #DDD;
+  position: relative;
+  overflow: hidden;
+}
+#prototypes li .proto_info {
+  text-align: center;
+}
+#prototypes li .proto_preview span {
+  display: block;
+  font-size: 100px;
+  color: #EEE;
+  font-weight: bold;
+  font-family: 'Helvetica';
+  position: absolute:
+  width: 100%;
+  text-align: center;
+  padding-top: 8px;
+}
+#asset { margin-bottom: 20px; }

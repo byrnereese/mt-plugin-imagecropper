@@ -67,9 +67,6 @@
     <thead>
         <tr>
             <th class="cb"><input type="checkbox" name="id-head" value="all" class="select" /></th>
-                <th class="status">
-                    <img src="<mt:var name="static_uri">images/status_icons/invert-flag.gif" alt="<__trans phrase="Status">" title="<__trans phrase="Status">" width="9" height="9" />
-            </th>
             <th id="l-lbl"><__trans phrase="Label"></th>
             <th id="l-mxw"><__trans phrase="Max Width"></th>
             <th id="l-mxh"><__trans phrase="Max Height"></th>
@@ -80,9 +77,6 @@
     </mt:if>
         <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
             <td class="cb"><input type="checkbox" name="id" value="<mt:var name="id">" class="select" /></td>
-            <td class="status si status-<mt:if name="enabled">publish<mt:else>pending</mt:if>">
-                <img src="<mt:var name="static_uri">images/spacer.gif" width="13" height="9" alt="<mt:if name="enabled"><__trans phrase="Enabled"><mt:else><__trans phrase="Disabled"></mt:if>" />
-            </td>
             <td><a href="javascript:void(0)" onclick="openDialog(null,'edit_prototype','blog_id=<mt:var name="blog_id">&id=<mt:var name="id">');return false;" class=""><mt:var name="label" escape="html"></a></td>
             <td><mt:var name="max_width" escape="html"></td>
             <td><mt:var name="max_height" escape="html"></td>
