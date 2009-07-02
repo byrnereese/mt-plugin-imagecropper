@@ -11,6 +11,8 @@ config_settings:
     default: 'Created by "Image Cropper"'
 
 tags:
+  block:
+    CroppedAsset: $ImageCropper::ImageCropper::Plugin::hdlr_cropped_asset
   function:
     DefaultCroppedImageText: $ImageCropper::ImageCropper::Plugin::hdlr_default_text
 

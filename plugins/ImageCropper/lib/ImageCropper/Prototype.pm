@@ -9,7 +9,7 @@ use base qw( MT::Object );
 __PACKAGE__->install_properties({
     column_defs => {
         'id'           => 'integer not null auto_increment',
-        'blog_id'      => 'integer',
+        'blog_id'      => 'integer not null',
         'label'        => 'string(100) not null',
         'default_tags' => 'string(255)',
         'max_width'    => 'smallint not null',

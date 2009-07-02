@@ -15,6 +15,43 @@ sub hdlr_default_text {
     return $cfg->DefaultCroppedImageText;
 }
 
+sub hdlr_cropped_asset {
+    my ( $ctx, $args, $cond ) = @_;
+    my $l = $args->{label};
+    my $a = $ctx->stash('asset');
+    my $blog = $ctx->stash('blog');
+    my $out;
+    return $ctx->_no_asset_error() unless $a;
+    my $cropped;
+
+    my $prototype = MT->model('thumbnail_prototype')->load({
+	blog_id => $blog->id,
+	label => $l,
+    });
+    unless ($prototype) {
+	return $ctx->error("A prototype could not be found with the label '$l'");
+    }
+    my $map = MT->model('thumbnail_prototype_map')->load({
+	prototype_id => $prototype->id,
+	asset_id => $a->id,
+    });
+    unless ($map) {
+        return _hdlr_pass_tokens_else(@_);
+    }
+    my $cropped = MT->model('asset')->load( $map->cropped_asset_id );
+    local $ctx->{__stash}{'asset'} = $cropped;
+    defined($out = $ctx->slurp($args,$cond)) or return;
+    return $out;
+}
+
+sub _hdlr_pass_tokens_else {
+    my($ctx, $args, $cond) = @_;
+    my $b = $ctx->stash('builder');
+    defined(my $out = $b->build($ctx, $ctx->stash('tokens_else'), $cond))
+        or return $ctx->error($b->errstr);
+    return $out;
+}
+
 sub save_prototype {
     my $app = shift;
     my $param;
@@ -48,6 +85,7 @@ sub edit_prototype {
     }
 
     $param->{blog_id}      = $blog->id;
+    $param->{id}           = $obj->id;
     $param->{label}        = $obj->label;
     $param->{max_width}    = $obj->max_width;
     $param->{max_height}   = $obj->max_height;
