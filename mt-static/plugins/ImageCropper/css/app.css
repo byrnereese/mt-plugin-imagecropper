@@ -33,17 +33,18 @@
   width: 175px;
   height: 135px; 
   border: 1px solid #999;
-  background-color: #DDD;
+  background-color: #F3F6F9;
   position: relative;
   overflow: hidden;
 }
 #prototypes li .proto_info {
   text-align: center;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 #prototypes li .proto_preview span {
   display: block;
   font-size: 100px;
-  color: #EEE;
+  color: #E0E0F9;
   font-weight: bold;
   font-family: 'Helvetica';
   position: absolute:
