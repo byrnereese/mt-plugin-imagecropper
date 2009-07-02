@@ -71,7 +71,8 @@
           'h':coords.h,
           'compress':$('#compress-field select').val(),
           'text':$('#annotation-field input').val(),
-          'text_loc':$('#annotation_loc-field input').val(),
+          'text_loc':$('#annotation_loc-field select').val(),
+          'text_rot':$('#annotation_rot-field select').val(),
           'magic_token':'<mt:var name="magic_token">'
         },
         function(data){
@@ -125,16 +126,16 @@
 
 <div id="asset"><img src="<mt:AssetThumbnailURL width="900">" /></div>
 
+<div id="annotation-settings" class="pkg">
 <mtapp:setting
     id="annotation"
     label_class="top-label"
     label="<__trans phrase="Text Annotation">"
     show_hint="0">
-      <input type="text" name="annotation" value="" class="full-width" />
+      <input type="text" name="annotation" value="<$mt:DefaultCroppedImageText encode_html="1"$>" size="50" />
 </mtapp:setting>
-
 <mtapp:setting
-    id="annotation-loc"
+    id="annotation_loc"
     label_class="top-label"
     label="<__trans phrase="Annotation Location">"
     show_hint="0">
@@ -145,6 +146,17 @@
          <option value="SouthEast">Bottom Right</option>
        </select>
 </mtapp:setting>
+<mtapp:setting
+    id="annotation_rot"
+    label_class="top-label"
+    label="<__trans phrase="Annotation Rotation">"
+    show_hint="0">
+       <select name="annotation_rot">
+         <option>Horizontal</option>
+         <option>Vertical</option>
+       </select>
+</mtapp:setting>
+</div>
 
 <mtapp:setting
     id="compress"

@@ -20,6 +20,9 @@ __PACKAGE__->install_properties({
     indexes => {
         id => 1,
         blog_id => 1,
+        labels => {
+            columns => [ 'blog_id', 'label' ],
+        },
     },
     datasource => 'cropper_prototypes',
     primary_key => 'id',

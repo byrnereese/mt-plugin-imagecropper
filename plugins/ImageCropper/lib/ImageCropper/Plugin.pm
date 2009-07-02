@@ -9,6 +9,12 @@ use Carp qw( croak );
 use MT::Util qw( relative_date offset_time offset_time_list epoch2ts ts2epoch format_ts );
 use ImageCropper::Util qw( crop_filename crop_image annotate );
 
+sub hdlr_default_text {
+    my($ctx, $args, $cond) = @_;
+    my $cfg = $ctx->{config};
+    return $cfg->DefaultCroppedImageText;
+}
+
 sub save_prototype {
     my $app = shift;
     my $param;
@@ -173,6 +179,7 @@ sub crop {
     my $compress = $q->param('compress');
     my $text     = $q->param('text');
     my $text_loc = $q->param('text_loc');
+    my $text_rot = $q->param('text_rot');
     my $id       = $q->param('id');
     my $pid      = $q->param('prototype');
 
@@ -247,6 +254,7 @@ sub crop {
 	$data = annotate( $img,
 			  text     => $text,
 			  location => $text_loc,
+			  rotation => $text_rot,
         );
     }
     require MT::FileMgr;

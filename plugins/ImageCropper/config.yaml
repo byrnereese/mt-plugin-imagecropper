@@ -3,8 +3,16 @@ name: 'Image Cropper'
 plugin_author: 'Endevver, LLC.'
 plugin_link: 'http://endevver.com/'
 description: "Allows users to define a set of thumbnail prototypes that others can easily generate using a drag-and-drop image cropping tool."
-version: 0.9
+version: 0.9.1
 schema_version: 3
+
+config_settings:
+  DefaultCroppedImageText: 
+    default: 'Created by "Image Cropper"'
+
+tags:
+  function:
+    DefaultCroppedImageText: $ImageCropper::ImageCropper::Plugin::hdlr_default_text
 
 object_types:
     thumbnail_prototype: ImageCropper::Prototype

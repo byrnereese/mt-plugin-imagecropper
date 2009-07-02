@@ -34,24 +34,40 @@ sub crop_image {
 sub annotate {
     my $image = shift;
     my %param = @_;
-    my ($txt, $loc) = @param{qw( text location )};
+    my ($txt, $loc, $ori) = @param{qw( text location rotation )};
     my $magick = $image->{magick};
-    my $opts;
+    my %opts;
     if ($loc eq 'NorthWest') {
-	$opts = { 'y' => 12, 'x' => 4 };
+#	%opts = { 'x' => 4, 'y' => 16 };
     } elsif ($loc eq 'SouthWest') {
-	$opts = { 'y' => 4, 'x' => 4 };
+#	%opts = { 'x' => 4, 'y' => 4 };
     } elsif ($loc eq 'NorthEast') {
-	$opts = { 'y' => 12, 'x' => 4 };
+#	$opts = { 'y' => 12, 'x' => 4 };
     } elsif ($loc eq 'SouthEast') {
-	$opts = { 'y' => 4, 'x' => 4 };
+#	$opts = { 'y' => 4, 'x' => 4 };
     }
+    my ($rot, $x) = (0, 0);
+    if ($ori eq 'Vertical') {
+	if ($loc eq 'NorthWest') {
+	    $rot = 90; $x = 12;
+	} elsif ($loc eq 'NorthEast') {
+	    $rot = 270; $x = 12;
+	} elsif ($loc eq 'SouthWest') {
+	    $rot = 270; $x = 12;
+	} elsif ($loc eq 'SouthEast') {
+	    $rot = 90; $x = 12;
+	} 
+    }
+    MT->log({ message => "Annotating: $loc, $ori, $rot, $x" });
     my $err = $magick->Annotate(
 	'pointsize' => '12', 
         'pen'       => 'white',
 	'text'      => $txt, 
         'gravity'   => $loc,
-	%$opts
+	'rotate'    => $rot,
+	'x'         => $x,
+#	'y' => '4',
+#	%opts
     );
     return $image->error(
 	MT->translate(
