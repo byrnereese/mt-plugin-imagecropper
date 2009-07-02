@@ -49,7 +49,7 @@ sub annotate {
 	} 
     }
     my $err = $magick->Annotate(
-	'pointsize' => '12', 
+	'pointsize' => '10', 
         'pen'       => 'white',
 	'text'      => $txt, 
         'gravity'   => $loc,
