@@ -143,8 +143,7 @@ sub gen_thumbnails_start {
     my $id = $app->{query}->param('id');
     my $obj = MT->model('asset')->load($id) or
 	return $app->error('Could not load asset.');
-    my @protos = MT->model('thumbnail_prototype')->load({ blog_id => $app->blog->id }) or
-	return $app->error('Could not load thumbnail prototypes.');
+    my @protos = MT->model('thumbnail_prototype')->load({ blog_id => $app->blog->id });
     my @loop;
     foreach my $p (@protos) {
 	my $map = MT->model('thumbnail_prototype_map')->load({
@@ -168,6 +167,7 @@ sub gen_thumbnails_start {
     my ($bw,$bh) = _box_dim($obj);
     $param->{box_width}  = $bw;
     $param->{box_height} = $bh;
+    $param->{has_prototypes} = $#loop > 0;
 
     my $tmpl = $app->load_tmpl( 'start.tmpl', $param );
     my $ctx = $tmpl->context;

@@ -89,19 +89,15 @@
     <link rel="stylesheet" href="<mt:StaticWebPath>plugins/ImageCropper/css/jquery.Jcrop.css" type="text/css">
 </mt:setvarblock>
 
-<mt:setvarblock name="content_header">
-    <div id="msg-container">
-    <mt:if name="prototype_saved">
+<$mt:include name="include/header.tmpl"$>
+
+<mt:unless name="has_prototypes">
         <mtapp:statusmsg
             id="message"
-            class="success">
-            <__trans phrase="">
+            class="alert">
+            <__trans phrase="You have no thumbnail prototypes defined. Please <a href="<mt:var name="script_url">?__mode=list_prototypes&blog_id=<$mt:var name="blog_id"$>">create some thumbnail prototypes</a>.">
         </mtapp:statusmsg>
-    </mt:if>
-    </div>
-</mt:setvarblock>
-
-<$mt:include name="include/header.tmpl"$>
+<mt:else>
 
 <h3>Select a Thumbnail Prototype:</h3>
 
@@ -189,5 +185,6 @@
         onclick="return cropAsset();">Crop</button>
   </div>
 </div>
+</mt:unless>
 
 <$mt:include name="include/footer.tmpl"$>
