@@ -2,23 +2,26 @@ package ImageCropper::Util;
 
 use strict;
 use base 'Exporter';
-our @EXPORT_OK = qw( crop_filename crop_image );
+our @EXPORT_OK = qw( crop_filename crop_image annotate );
 
 sub crop_image {
     my $image = shift;
     my %param = @_;
-    my ($w, $h, $x, $y) = @param{qw( Width Height X Y )};
+    my ($w, $h, $x, $y, $c) = @param{qw( Width Height X Y compress)};
     my $magick = $image->{magick};
     my $err = $magick->Crop(
 	'width' => $w, 
 	'height' => $h, 
 	'x' => $x, 
 	'y' => $y,
-    );     
-    MT->log({ message => "Cropping a $w x $h image at $x,$y" });
+    );
+#    if ($c) {
+#	MT->log({ message => "Compressing image: $c" });
+#	$magick->Set( quality => $c, compression => 'JPEG2000' );
+#    }
     return $image->error(
 	MT->translate(
-	    "Cropping a [_1]x[_2] image at [_3],[_4] failed: [_5]", 
+	    "Error cropping a [_1]x[_2] image at [_3],[_4] failed: [_5]", 
 	    $w, $h, $x, $y, $err)) if $err;
 
     ## Remove page offsets from the original image, per this thread: 
@@ -26,6 +29,36 @@ sub crop_image {
     $magick->Set( page => '+0+0' );
     ($image->{width}, $image->{height}) = ($w, $h);
     wantarray ? ($magick->ImageToBlob, $w, $h) : $magick->ImageToBlob;
+}
+
+sub annotate {
+    my $image = shift;
+    my %param = @_;
+    my ($txt, $loc) = @param{qw( text location )};
+    my $magick = $image->{magick};
+    my $opts;
+    if ($loc eq 'NorthWest') {
+	$opts = { 'y' => 12, 'x' => 4 };
+    } elsif ($loc eq 'SouthWest') {
+	$opts = { 'y' => 4, 'x' => 4 };
+    } elsif ($loc eq 'NorthEast') {
+	$opts = { 'y' => 12, 'x' => 4 };
+    } elsif ($loc eq 'SouthEast') {
+	$opts = { 'y' => 4, 'x' => 4 };
+    }
+    my $err = $magick->Annotate(
+	'pointsize' => '12', 
+        'pen'       => 'white',
+	'text'      => $txt, 
+        'gravity'   => $loc,
+	%$opts
+    );
+    return $image->error(
+	MT->translate(
+	    "Error annotating image with [_1]: [_2]", 
+	    $txt, $err)) if $err;
+
+    wantarray ? ($magick->ImageToBlob) : $magick->ImageToBlob;
 }
 
 sub crop_filename {

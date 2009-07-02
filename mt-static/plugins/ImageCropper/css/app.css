@@ -1,10 +1,22 @@
 #prototypes li {
   float: left; 
-  margin-right: 10px;
   padding: 10px 7px;
+  position: relative;
 }
 #prototypes li.selected {
   background-color: #DDDDEE;
+}
+#prototypes li:hover .proto_action {
+  display: block;
+}
+#prototypes li.nothumb .proto_action {
+  display: none !important;
+}
+#prototypes li .proto_action {
+  display: none;
+  position: absolute;
+  right: 12px;
+  top: 130px;
 }
 #prototypes li .proto_preview {
   width: 175px;
@@ -28,4 +40,52 @@
   text-align: center;
   padding-top: 8px;
 }
+
 #asset { margin-bottom: 20px; }
+
+#selector { position: relative; width: 800px; }
+div.scrollable { 
+    position:relative; 
+    overflow:hidden;          
+    width:765px;
+    height:188px; 
+    margin-left: 20px;
+} 
+a.next { margin-top: 70px; margin-left: 5px; position: absolute; right: 0px; }
+a.prev { margin-top: 70px; margin-right: 5px;  position: absolute; }
+div.scrollable #prototypes {     
+    width:20000em;     
+    position:absolute;         
+} 
+ 
+div.items div.active { 
+    border:1px inset #ccc;         
+    background-color:#fff; 
+}
+
+div.scrollable {
+	float:left;
+	margin-bottom: 20px;
+}
+
+a.prev, a.next, a.prevPage, a.nextPage {
+	display:block;
+	width:18px;
+	height:18px;
+	background:url(../js/left.png) no-repeat;
+	float:left;
+	cursor:pointer;
+}
+
+a.prev:hover, a.next:hover, a.prevPage:hover, a.nextPage:hover {
+	background-position:0px -18px;		
+}
+
+a.disabled {
+	visibility:hidden !important;		
+}
+
+a.next, a.nextPage {
+	background-image:url(../js/right.png);
+        clear:right;
+}

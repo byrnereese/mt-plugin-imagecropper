@@ -7,7 +7,7 @@ use strict;
 
 use Carp qw( croak );
 use MT::Util qw( relative_date offset_time offset_time_list epoch2ts ts2epoch format_ts );
-use ImageCropper::Util qw( crop_filename crop_image );
+use ImageCropper::Util qw( crop_filename crop_image annotate );
 
 sub save_prototype {
     my $app = shift;
@@ -103,11 +103,21 @@ sub gen_thumbnails_start {
 	return $app->error('Could not load thumbnail prototypes.');
     my @loop;
     foreach my $p (@protos) {
+	my $map = MT->model('thumbnail_prototype_map')->load({
+	    asset_id => $obj->id,
+	    prototype_id => $p->id,
+        });
+	my $url;
+	if ($map) {
+	    my $a = MT->model('asset')->load( $map->cropped_asset_id );
+	    $url = $a->url if $a;
+	}
 	push @loop, {
-	    proto_id    => $p->id,
-	    proto_label => $p->label,
-	    max_width   => $p->max_width,
-	    max_height  => $p->max_height,
+	    proto_id      => $p->id,
+	    proto_label   => $p->label,
+	    thumbnail_url => $url,
+	    max_width     => $p->max_width,
+	    max_height    => $p->max_height,
 	};
     }
     $param->{prototype_loop} = \@loop if @loop;
@@ -121,6 +131,32 @@ sub gen_thumbnails_start {
     return $tmpl;
 }
 
+sub delete_crop {
+    my $app = shift;
+
+    my $q    = $app->param;
+    my $blog = $app->blog;
+
+    my $id     = $q->param('id');
+    my $pid    = $q->param('prototype');
+
+    my $oldmap = MT->model('thumbnail_prototype_map')->load({
+	asset_id => $id,
+	prototype_id => $pid,
+    });
+    if ($oldmap) {
+	my $oldasset = MT->model('asset')->load( $oldmap->cropped_asset_id );
+	$oldasset->remove()
+	    or MT->log({ blog_id => $blog->id, message => "Error removing asset: " . $oldmap->cropped_asset_id });
+	$oldmap->remove()
+	    or MT->log({ blog_id => $blog->id, message => "Error removing prototype map." });
+    }
+    my $result = {
+	success => 1,
+    };
+    return _send_json_response($app, $result);
+}
+
 sub crop {
     my $app = shift;
 
@@ -130,12 +166,15 @@ sub crop {
     my $fmgr;
     my $result;
 
-    my $X      = $q->param('x');
-    my $Y      = $q->param('y');
-    my $width  = $q->param('w');
-    my $height = $q->param('h');
-    my $id     = $q->param('id');
-    my $pid    = $q->param('prototype');
+    my $X        = $q->param('x');
+    my $Y        = $q->param('y');
+    my $width    = $q->param('w');
+    my $height   = $q->param('h');
+    my $compress = $q->param('compress');
+    my $text     = $q->param('text');
+    my $text_loc = $q->param('text_loc');
+    my $id       = $q->param('id');
+    my $pid      = $q->param('prototype');
 
     my $asset     = MT->model('asset')->load( $id );
     my $prototype = MT->model('thumbnail_prototype')->load( $pid );
@@ -170,6 +209,25 @@ sub crop {
     $asset_cropped->label($app->translate("[_1] ([_2])", $asset->label || $asset->file_name, $prototype->label));
     $asset_cropped->parent( $asset->id );
     $asset_cropped->save;
+
+    my $oldmap = MT->model('thumbnail_prototype_map')->load({
+	asset_id => $asset->id,
+	prototype_id => $prototype->id,
+    });
+    if ($oldmap) {
+	my $oldasset = MT->model('asset')->load( $oldmap->cropped_asset_id );
+	MT->log({ blog_id => $blog->id, message => "Removing: " . $oldasset->label });
+	$oldasset->remove()
+	    or MT->log({ blog_id => $blog->id, message => "Error removing asset: " . $oldmap->cropped_asset_id });
+	$oldmap->remove()
+	    or MT->log({ blog_id => $blog->id, message => "Error removing prototype map." });
+    }
+
+    my $map = MT->model('thumbnail_prototype_map')->new;
+    $map->asset_id($asset->id);
+    $map->prototype_id($prototype->id);
+    $map->cropped_asset_id($asset_cropped->id);
+    $map->save;
     
     require MT::Image;
     my $img = MT::Image->new( Filename => $asset->file_path )
@@ -179,12 +237,18 @@ sub crop {
 			  Height => $height,
 			  X      => $X,
 			  Y      => $Y,
+			  compress => $compress,
     );
     $data = $img->scale( 
 	Width  => $prototype->max_width,
 	Height => $prototype->max_height,
     );
-
+    if ($text) {
+	$data = annotate( $img,
+			  text     => $text,
+			  location => $text_loc,
+        );
+    }
     require MT::FileMgr;
     $fmgr ||= $blog ? $blog->file_mgr : MT::FileMgr->new('Local');
     unless ($fmgr) {

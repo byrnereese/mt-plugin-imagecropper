@@ -4,10 +4,11 @@ plugin_author: 'Endevver, LLC.'
 plugin_link: 'http://endevver.com/'
 description: "Allows users to define a set of thumbnail prototypes that others can easily generate using a drag-and-drop image cropping tool."
 version: 0.9
-schema_version: 2
+schema_version: 3
 
 object_types:
     thumbnail_prototype: ImageCropper::Prototype
+    thumbnail_prototype_map: ImageCropper::PrototypeMap
 
 applications:
   cms:
@@ -21,6 +22,7 @@ applications:
       edit_prototype: $ImageCropper::ImageCropper::Plugin::edit_prototype
       save_prototype: $ImageCropper::ImageCropper::Plugin::save_prototype
       imagecropper_crop: $ImageCropper::ImageCropper::Plugin::crop
+      imagecropper_delete_crop: $ImageCropper::ImageCropper::Plugin::delete_crop
     page_actions:
       asset:
         gen_thumbnails: 

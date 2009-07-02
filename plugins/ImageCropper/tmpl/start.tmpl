@@ -7,14 +7,18 @@
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/ui.resizable.js"></script>
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/ui.draggable.js"></script>
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.dimensions.js"></script>
+    <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.scrollable-1.0.1.min.js"></script>
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.Jcrop.js"></script>
     <script type="text/javascript">
     var protos = Array();
+    var coords;
+    var asset_id = <$mt:AssetID$>;
     var selected = 0;
 <mt:loop name="prototype_loop">
     protos[<$mt:var name="proto_id"$>] = { 'max_width': <$mt:var name="max_width"$>, 'max_height': <$mt:var name="max_height"$>, 'label': '<$mt:var name="proto_label" encode_js="1"$>' };
 </mt:loop>
     $(document).ready( function() {    
+      $('.scrollable').scrollable({ size: 4, items: 'ul', clickable: false });
       $('#prototypes li').click( function() {
         var id = $(this).attr('id').substr( 'proto-'.length )
 	var p = protos[id];
@@ -23,17 +27,34 @@
         selected = id;
 	initCrop( p.max_width, p.max_height );
       });
+      $('#prototypes li .proto_action a').click( function(e) {
+        e.stopPropagation();
+        var li = $(this).parent().parent();
+        li.addClass('nothumb');
+        var id = li.attr('id').substr( 'proto-'.length )
+        $.post("<mt:AdminCGIPath><mt:AdminScript>", {
+            '__mode': "imagecropper_delete_crop",
+            'blog_id':"<mt:var name="blog_id">",
+            'id':asset_id,
+            'prototype':id,
+            'magic_token':'<mt:var name="magic_token">'
+          },
+          function(data){
+            $('#prototypes li#proto-'+id+' .proto_preview').html('<span>?</span>' );
+          },
+          "json"
+        );
+        return true;
+      });
     });
-    var coords;
-    var asset_id = <$mt:AssetID$>;
     function setCoords(c) { coords = c; }
     function initCrop(w,h) {
-      $('#asset').Jcrop({
+      $('#asset img').Jcrop({
         aspectRatio: ( w / h ), /* the size of the crop region */
         boxWidth: <$mt:var name="box_width"$>, 
         boxHeight: <$mt:var name="box_height"$>,
         trueSize: [ <$mt:AssetProperty property="image_width"$>, <$mt:AssetProperty property="image_height"$> ],
-        onSelect: setCoords,
+        onSelect: setCoords
       });
     }
     function cropAsset() {
@@ -48,10 +69,14 @@
           'y':coords.y,
           'w':coords.w,
           'h':coords.h,
+          'compress':$('#compress-field select').val(),
+          'text':$('#annotation-field input').val(),
+          'text_loc':$('#annotation_loc-field input').val(),
           'magic_token':'<mt:var name="magic_token">'
         },
         function(data){
           $('#prototypes li#proto-'+data.proto_id+' .proto_preview').html('<img src="'+data.cropped_url + '" width="175" />' );
+	  $('#prototypes li#proto-'+data.proto_id).removeClass('nothumb');
         },
         "json"
       );
@@ -79,10 +104,14 @@
 
 <h3>Select a Thumbnail Prototype:</h3>
 
+<div id="selector" class="pkg">
+<a class="prev"></a>
+<div class="scrollable">
 <ul id="prototypes" class="pkg">
 <mt:loop name="prototype_loop">
-  <li id="proto-<$mt:var name="proto_id"$>">
-    <div class="proto_preview"><span>?</span></div>
+  <li id="proto-<$mt:var name="proto_id"$>" class="<mt:unless name="thumbnail_url">nothumb</mt:unless>">
+    <div class="proto_preview"><mt:if name="thumbnail_url"><img src="<$mt:var name="thumbnail_url"$>" width="175" /><mt:else><span>?</span></mt:if></div>
+    <div class="proto_action"><a href="javascript:void(0);"><img src="<$mt:StaticWebPath$>plugins/ImageCropper/css/delete.gif" /></a></div>
     <div class="proto_info">
       <$mt:var name="proto_label"$><br />
       (<$mt:var name="max_width"$> x <$mt:var name="max_height"$>)
@@ -90,15 +119,18 @@
   </li>
 </mt:loop>
 </ul>
+</div>
+<a class="next"></a>
+</div>
 
-<img id="asset" src="<mt:AssetThumbnailURL width="900">" />
+<div id="asset"><img src="<mt:AssetThumbnailURL width="900">" /></div>
 
 <mtapp:setting
     id="annotation"
     label_class="top-label"
     label="<__trans phrase="Text Annotation">"
     show_hint="0">
-      <input id="url" type="text" name="annotation" value="" class="full-width" />
+      <input type="text" name="annotation" value="" class="full-width" />
 </mtapp:setting>
 
 <mtapp:setting
@@ -107,10 +139,31 @@
     label="<__trans phrase="Annotation Location">"
     show_hint="0">
        <select name="annotation_loc">
-         <option>Top Left</option>
-         <option>Top Right</option>
-         <option>Bottom Left</option>
-         <option>Bottom Right</option>
+         <option value="NorthWest">Top Left</option>
+         <option value="NorthEast">Top Right</option>
+         <option value="SouthWest">Bottom Left</option>
+         <option value="SouthEast">Bottom Right</option>
+       </select>
+</mtapp:setting>
+
+<mtapp:setting
+    id="compress"
+    label_class="top-label"
+    label="<__trans phrase="Thumbnail Compression">"
+    hint="non-functional right now"
+    show_hint="1">
+       <select name="compress">
+         <option value"0">None</option>
+         <option>10</option>
+         <option>20</option>
+         <option>30</option>
+         <option>40</option>
+         <option>50</option>
+         <option>60</option>
+         <option>70</option>
+         <option>80</option>
+         <option>90</option>
+         <option value="100">Maximum</option>
        </select>
 </mtapp:setting>
 
