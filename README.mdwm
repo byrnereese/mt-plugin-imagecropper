@@ -33,6 +33,60 @@ This utility facilitates that process.
 * Place annotations using the orientation and location you specify 
   on the generated thumbnail.
 
+# Installation
+
+To install this plugin follow the instructions found here:
+
+http://tinyurl.com/easy-plugin-install
+
+# Usage
+
+**Managing "Prototypes"**
+
+To manage the list of allowable cropped thumbnails for your web
+site, select "Thumbnail Prototypes" from the Preferences menu from
+within Movable Type.
+
+Then simply add and edit thumbnail prototypes by defining the following
+properties for each:
+
+* Max Width
+* Max Height
+* Label (used later for selecting and placing cropped images on your web site)
+
+**Managing Thumbnails**
+
+Once you have defined a list of prototypes you can begin creating
+thumbnails. To do that, navigate to the Edit Asset screen associated
+with the asset in question. In the sidebar you will see a link called
+"Generate Thumbnails." Clicking that link will take you to the cropping
+dashboard.
+
+**Adding Cropped Images to your Website**
+
+Once you have created a cropped thumbnail, you can display it on your
+web site using the following template code:
+
+    <mt:Asset id="136">
+      <mt:CroppedAsset label="Square">
+        <img src="<$mt:AssetURL$>" />
+      </mt:CroppedAsset>
+    </mt:Asset>
+
+It is quite possible however that you need to display the cropped
+version of an asset only if it is available and fall back to a simple
+scaled version of the thumbnail if a cropped version cannot be found.
+The following template code shows how you can use `<mt:else>` to do
+just that:
+
+    <mt:Asset id="136">
+      <mt:CroppedAsset label="Square">
+        <img src="<$mt:AssetURL$>" width="100" height="100" />
+      <mt:Else>
+        <img src="<$mt:AssetThumbnailURL square="1" width="100"$>" />
+      </mt:CroppedAsset>
+    </mt:Asset>
+
 # Config Directives
 
 * **`DefaultCroppedImageText`** - Determines the default text to be
@@ -45,20 +99,10 @@ This utility facilitates that process.
 
 * `<$mt:CroppedAsset$>` - Places the desired cropped image asset
   into context. This tag must be called with an existing asset
-  (the parent asset) already in context. See example below. Allowable
+  (the parent asset) already in context. See example above. Allowable
   arguments:
 
   * `label` - The label to filter by.
-
-# Example
-
-    <mt:Asset id="136">
-      <mt:CroppedAsset label="Square">
-        <img src="<$mt:AssetURL$>" />
-      <mt:Else>
-        <p>Nothing found.</p>
-      </mt:CroppedAsset>
-    </mt:Asset>
 
 # About Endevver
 
