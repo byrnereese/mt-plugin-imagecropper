@@ -15,17 +15,27 @@
     var asset_id = <$mt:AssetID$>;
     var selected = 0;
 <mt:loop name="prototype_loop">
-    protos[<$mt:var name="proto_id"$>] = { 'max_width': <$mt:var name="max_width"$>, 'max_height': <$mt:var name="max_height"$>, 'label': '<$mt:var name="proto_label" encode_js="1"$>' };
+    protos[<$mt:var name="proto_id"$>] = { 
+      'max_width': <$mt:var name="max_width"$>, 
+      'max_height': <$mt:var name="max_height"$>, 
+      'label': '<$mt:var name="proto_label" encode_js="1"$>', 
+      'x': <$mt:var name="cropped_x" default="0"$>, 'y': <$mt:var name="cropped_y" default="0"$>, 
+      'w': <$mt:var name="cropped_w" default="0"$>, 'h': <$mt:var name="cropped_h" default="0"$> 
+    };
 </mt:loop>
     $(document).ready( function() {    
       $('.scrollable').scrollable({ size: 4, items: 'ul', clickable: false });
+      $('#prototypes li').hover( 
+        function() { $(this).find('.proto_action').show(); },
+        function() { $(this).find('.proto_action').hide(); }
+      );
       $('#prototypes li').click( function() {
         var id = $(this).attr('id').substr( 'proto-'.length )
 	var p = protos[id];
 	$('#prototypes li#proto-'+selected).removeClass('selected');
 	$('#prototypes li#proto-'+id).addClass('selected');
         selected = id;
-	initCrop( p.max_width, p.max_height );
+	initCrop( p.max_width, p.max_height, p.x, p.y, p.w, p.h );
       });
       $('#prototypes li .proto_action a').click( function(e) {
         e.stopPropagation();
@@ -47,19 +57,36 @@
         return true;
       });
     });
+    function toggleAnnotation( e ) {
+      if (e.checked) {
+        $('#annotation-settings').slideDown();
+      } else {
+        $('#annotation-settings').slideUp();
+      }
+    };
     function setCoords(c) { coords = c; }
-    function initCrop(w,h) {
-      $('#asset img').Jcrop({
-        aspectRatio: ( w / h ), /* the size of the crop region */
-        boxWidth: <$mt:var name="box_width"$>, 
-        boxHeight: <$mt:var name="box_height"$>,
-        trueSize: [ <$mt:AssetProperty property="image_width"$>, <$mt:AssetProperty property="image_height"$> ],
-        onSelect: setCoords
+    var jcrop;
+    function initCrop(max_w,max_h,x,y,w,h) {
+      if (jcrop) { jcrop.destroy(); }
+      jcrop = $.Jcrop('#asset img',{
+        aspectRatio: ( max_w / max_h ), /* the size of the crop region */
+        minSize    : [ max_w, max_h ],
+        boxWidth   : <$mt:var name="box_width"$>, 
+        boxHeight  : <$mt:var name="box_height"$>,
+        trueSize   : [ <$mt:AssetProperty property="image_width"$>, <$mt:AssetProperty property="image_height"$> ],
+        onSelect   : setCoords
       });
+      jcrop.setSelect([ x, y, x+w, y+h ]);
     }
     function cropAsset() {
       if (!coords) { return; }
       // TODO - progress indicator
+      protos[ selected ].x = coords.x;
+      protos[ selected ].y = coords.y;
+      protos[ selected ].w = coords.w;
+      protos[ selected ].h = coords.h;
+      var annotate = $('#include_annotation-field input:checked').val() == 1;
+      $('#prototypes li#proto-'+selected).addClass('inprogress');
       $.post("<mt:AdminCGIPath><mt:AdminScript>", {
           '__mode': "imagecropper_crop",
           'blog_id':"<mt:var name="blog_id">",
@@ -70,12 +97,14 @@
           'w':coords.w,
           'h':coords.h,
           'compress':$('#compress-field select').val(),
+          'annotate':annotate ? 1 : 0,
           'text':$('#annotation-field input').val(),
           'text_loc':$('#annotation_loc-field select').val(),
           'text_rot':$('#annotation_rot-field select').val(),
           'magic_token':'<mt:var name="magic_token">'
         },
         function(data){
+          $('#prototypes li#proto-'+data.proto_id).removeClass('inprogress');
           $('#prototypes li#proto-'+data.proto_id+' .proto_preview').html('<img src="'+data.cropped_url + '" width="175" />' );
 	  $('#prototypes li#proto-'+data.proto_id).removeClass('nothumb');
         },
@@ -109,6 +138,7 @@
   <li id="proto-<$mt:var name="proto_id"$>" class="<mt:unless name="thumbnail_url">nothumb</mt:unless>">
     <div class="proto_preview"><mt:if name="thumbnail_url"><img src="<$mt:var name="thumbnail_url"$>" width="175" /><mt:else><span>?</span></mt:if></div>
     <div class="proto_action"><a href="javascript:void(0);"><img src="<$mt:StaticWebPath$>plugins/ImageCropper/css/delete.gif" /></a></div>
+    <div class="proto_progress"><img src="<$mt:StaticWebPath$>plugins/ImageCropper/css/indicator.gif" width="16" height="16" /></div>
     <div class="proto_info">
       <$mt:var name="proto_label"$><br />
       (<$mt:var name="max_width"$> x <$mt:var name="max_height"$>)
@@ -120,8 +150,24 @@
 <a class="next"></a>
 </div>
 
-<div id="asset"><img src="<mt:AssetThumbnailURL width="900">" /></div>
 
+<div id="asset" style="width: <$mt:var name="box_width"$>; height: <$mt:var name="box_height"$>"><mt:section trim="1">
+<mt:setvarblock name="width"><$mt:AssetProperty property="image_width"$></mt:setvarblock>
+<mt:if name="width" lt="900">
+<img src="<$mt:AssetURL$>" />
+<mt:else>
+<img src="<$mt:AssetThumbnailURL width="900"$>" />
+</mt:if>
+</mt:section></div>
+
+<mtapp:setting
+    id="include_annotation"
+    label_class="top-label"
+    label="<__trans phrase="Include Text Annotation?">"
+    show_label="0"
+    show_hint="0">
+      <label><input type="checkbox" name="include_annotation" value="1" onclick="toggleAnnotation(this);" /> Include Text Annotation?</label>
+</mtapp:setting>
 <div id="annotation-settings" class="pkg">
 <mtapp:setting
     id="annotation"

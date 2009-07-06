@@ -143,6 +143,7 @@ sub gen_thumbnails_start {
     my $id = $app->{query}->param('id');
     my $obj = MT->model('asset')->load($id) or
 	return $app->error('Could not load asset.');
+    my ($bw,$bh) = _box_dim($obj);
     my @protos = MT->model('thumbnail_prototype')->load({ blog_id => $app->blog->id });
     my @loop;
     foreach my $p (@protos) {
@@ -150,23 +151,34 @@ sub gen_thumbnails_start {
 	    asset_id => $obj->id,
 	    prototype_id => $p->id,
         });
-	my $url;
+	my ($url,$x,$y,$w,$h);
 	if ($map) {
+	    $x  = $map->cropped_x;
+	    $y  = $map->cropped_y;
+	    $w  = $map->cropped_w;
+	    $h  = $map->cropped_h;
 	    my $a = MT->model('asset')->load( $map->cropped_asset_id );
-	    $url = $a->url if $a;
+	    if ($a) {
+		$url = $a->url;
+	    }
 	}
 	push @loop, {
 	    proto_id      => $p->id,
 	    proto_label   => $p->label,
 	    thumbnail_url => $url,
+	    cropped_x     => $x,
+	    cropped_y     => $y,
+	    cropped_w     => $w,
+	    cropped_h     => $h,
 	    max_width     => $p->max_width,
 	    max_height    => $p->max_height,
 	};
     }
     $param->{prototype_loop} = \@loop if @loop;
-    my ($bw,$bh) = _box_dim($obj);
     $param->{box_width}  = $bw;
     $param->{box_height} = $bh;
+    $param->{actual_width}  = $obj->image_width;
+    $param->{actual_height} = $obj->image_height;
     $param->{has_prototypes} = $#loop > 0;
 
     my $tmpl = $app->load_tmpl( 'start.tmpl', $param );
@@ -215,6 +227,7 @@ sub crop {
     my $width    = $q->param('w');
     my $height   = $q->param('h');
     my $compress = $q->param('compress');
+    my $annotate = $q->param('annotate');
     my $text     = $q->param('text');
     my $text_loc = $q->param('text_loc');
     my $text_rot = $q->param('text_rot');
@@ -272,6 +285,10 @@ sub crop {
     $map->asset_id($asset->id);
     $map->prototype_id($prototype->id);
     $map->cropped_asset_id($asset_cropped->id);
+    $map->cropped_x($X);
+    $map->cropped_y($Y);
+    $map->cropped_w($width);
+    $map->cropped_h($height);
     $map->save;
     
     require MT::Image;
@@ -288,7 +305,7 @@ sub crop {
 	Width  => $prototype->max_width,
 	Height => $prototype->max_height,
     );
-    if ($text) {
+    if ($annotate && $text) {
 	$data = annotate( $img,
 			  text     => $text,
 			  location => $text_loc,

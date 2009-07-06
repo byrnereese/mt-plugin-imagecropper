@@ -1,3 +1,6 @@
+#annotation-settings {
+  display: none;
+}
 #annotation-settings .field {
   width: auto;
   float: left;
@@ -17,12 +20,16 @@
 #prototypes li.selected .proto_info {
   color: white;
 }
-#prototypes li:hover .proto_action {
+#prototypes li.inprogress .proto_progress {
   display: block;
+}
+#prototypes li.inprogress .proto_action {
+  display: none;
 }
 #prototypes li.nothumb .proto_action {
   display: none !important;
 }
+#prototypes li .proto_progress,
 #prototypes li .proto_action {
   display: none;
   position: absolute;
