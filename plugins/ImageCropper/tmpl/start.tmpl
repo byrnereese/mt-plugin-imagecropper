@@ -11,6 +11,7 @@
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.Jcrop.js"></script>
     <script type="text/javascript">
     var protos = Array();
+    var inprocess = Array();
     var coords;
     var asset_id = <$mt:AssetID$>;
     var selected = 0;
@@ -82,6 +83,8 @@
     }
     function cropAsset() {
       if (!coords) { return; }
+      if (inprocess[selected]) { return; }
+      inprocess[selected] = 1;
       // TODO - progress indicator
       protos[ selected ].x = coords.x;
       protos[ selected ].y = coords.y;
@@ -107,6 +110,7 @@
           'magic_token':'<mt:var name="magic_token">'
         },
         function(data){
+          inprocess[data.proto_id] = 0;
           $('#prototypes li#proto-'+data.proto_id).removeClass('inprogress');
           $('#prototypes li#proto-'+data.proto_id+' .proto_preview').html('<img src="'+data.cropped_url + '" width="175" />' );
 	  $('#prototypes li#proto-'+data.proto_id).removeClass('nothumb');
@@ -214,7 +218,7 @@
     hint="non-functional right now"
     show_hint="1">
        <select name="type">
-         <option value="jpg">JPEG</option>
+         <option value="jpg" selected>JPEG</option>
          <option value="png">PNG</option>
          <option value="gif">GIF</option>
        </select>
@@ -226,12 +230,12 @@
     hint="non-functional right now"
     show_hint="1">
        <select name="quality">
-         <option value="0">0 - Lowest</option>
+         <option value="1">0 - Lowest</option>
          <option value="10">1</option>
          <option value="20">2</option>
          <option value="30">3</option>
          <option value="40">4</option>
-         <option value="50">5</option>
+         <option value="50" selected>5</option>
          <option value="60">6</option>
          <option value="70">7</option>
          <option value="80">8</option>
