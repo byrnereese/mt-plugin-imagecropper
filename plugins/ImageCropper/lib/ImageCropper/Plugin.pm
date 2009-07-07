@@ -7,7 +7,7 @@ use strict;
 
 use Carp qw( croak );
 use MT::Util qw( relative_date offset_time offset_time_list epoch2ts ts2epoch format_ts );
-use ImageCropper::Util qw( crop_filename crop_image annotate );
+use ImageCropper::Util qw( crop_filename crop_image annotate file_size );
 
 sub hdlr_default_text {
     my($ctx, $args, $cond) = @_;
@@ -151,7 +151,7 @@ sub gen_thumbnails_start {
 	    asset_id => $obj->id,
 	    prototype_id => $p->id,
         });
-	my ($url,$x,$y,$w,$h);
+	my ($url,$x,$y,$w,$h,$size);
 	if ($map) {
 	    $x  = $map->cropped_x;
 	    $y  = $map->cropped_y;
@@ -160,6 +160,7 @@ sub gen_thumbnails_start {
 	    my $a = MT->model('asset')->load( $map->cropped_asset_id );
 	    if ($a) {
 		$url = $a->url;
+		$size = file_size($a);
 	    }
 	}
 	push @loop, {
@@ -170,6 +171,7 @@ sub gen_thumbnails_start {
 	    cropped_y     => $y,
 	    cropped_w     => $w,
 	    cropped_h     => $h,
+	    cropped_size  => $size,
 	    max_width     => $p->max_width,
 	    max_height    => $p->max_height,
 	};
@@ -226,7 +228,8 @@ sub crop {
     my $Y        = $q->param('y');
     my $width    = $q->param('w');
     my $height   = $q->param('h');
-    my $compress = $q->param('compress');
+    my $type     = $q->param('type');
+    my $quality  = $q->param('quality');
     my $annotate = $q->param('annotate');
     my $text     = $q->param('text');
     my $text_loc = $q->param('text_loc');
@@ -238,10 +241,8 @@ sub crop {
     my $prototype = MT->model('thumbnail_prototype')->load( $pid );
 
     my $cropped   = crop_filename( $asset, 
-				   Width => $prototype->max_width,
-				   Height => $prototype->max_height,
-				   X => $X,
-				   Y => $Y,
+				   Prototype => $pid,
+				   Type => $type,
     );
     my $cache_path; my $cache_url;
     my $archivepath = $blog->archive_path;
@@ -299,7 +300,8 @@ sub crop {
 			  Height => $height,
 			  X      => $X,
 			  Y      => $Y,
-			  compress => $compress,
+			  Type   => $type,
+			  quality => $quality,
     );
     $data = $img->scale( 
 	Width  => $prototype->max_width,
@@ -352,6 +354,7 @@ sub crop {
 	cropped      => $cropped,
 	cropped_path => $cropped_path,
 	cropped_url  => $cropped_url,
+	cropped_size => file_size($asset_cropped),
     };
 
     return _send_json_response($app, $result);

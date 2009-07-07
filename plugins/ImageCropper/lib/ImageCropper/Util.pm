@@ -2,12 +2,27 @@ package ImageCropper::Util;
 
 use strict;
 use base 'Exporter';
-our @EXPORT_OK = qw( crop_filename crop_image annotate );
+our @EXPORT_OK = qw( crop_filename crop_image annotate file_size );
+
+sub file_size {
+    my $a = shift;
+    my $sizef = '? KB';
+    if ( $a->file_path && ( -f $a->file_path ) ) {
+	my @stat = stat( $a->file_path );
+	my $size = $stat[7];
+	if ( $size < 1024 ) { $sizef = sprintf( "%d Bytes", $size );
+	} elsif ( $size < 1024000 ) { $sizef = sprintf( "%.1f KB", $size / 1024 );
+	} else { $sizef = sprintf( "%.1f MB", $size / 1024000 );
+	}
+	MT->log({ message => $a->file_path . " is " . $sizef });
+    }
+    return $sizef;
+}
 
 sub crop_image {
     my $image = shift;
     my %param = @_;
-    my ($w, $h, $x, $y, $c) = @param{qw( Width Height X Y compress)};
+    my ($w, $h, $x, $y, $type, $qual) = @param{qw( Width Height X Y Type quality)};
     my $magick = $image->{magick};
     my $err = $magick->Crop(
 	'width' => $w, 
@@ -15,10 +30,10 @@ sub crop_image {
 	'x' => $x, 
 	'y' => $y,
     );
-#    if ($c) {
-#	MT->log({ message => "Compressing image: $c" });
-#	$magick->Set( quality => $c, compression => 'JPEG2000' );
-#    }
+    if ($qual) {
+	MT->log({ message => "Quality of image: $qual" });
+	$magick->Set( quality => $qual );
+    }
     return $image->error(
 	MT->translate(
 	    "Error cropping a [_1]x[_2] image at [_3],[_4] failed: [_5]", 
@@ -27,6 +42,7 @@ sub crop_image {
     ## Remove page offsets from the original image, per this thread: 
     ## http://studio.imagemagick.org/pipermail/magick-users/2003-September/010803.html
     $magick->Set( page => '+0+0' );
+    $magick->Set( magick => $type );
     ($image->{width}, $image->{height}) = ($w, $h);
     wantarray ? ($magick->ImageToBlob, $w, $h) : $magick->ImageToBlob;
 }
@@ -70,22 +86,16 @@ sub crop_filename {
     my $file    = $asset->file_name or return;
     
     require MT::Util;
-    my $format = $param{Format} || MT->translate('%f-cropped-%X.%Y-%wx%h%x');
-    my $width  = $param{Width}  || 'auto';
-    my $height = $param{Height} || 'auto';
-    my $X      = $param{X} || '0';
-    my $Y      = $param{Y} || '0';
+    my $format = $param{Format} || MT->translate('%f-cropped-proto-%p%x');
+    my $proto  = $param{Prototype} || '0';
     $file =~ s/\.\w+$//;
     my $base = File::Basename::basename($file);
-    my $id   = $asset->id;
     my $ext  = lc($param{Type}) || $asset->file_ext || '';
     $ext = '.' . $ext;
-    $format =~ s/%w/$width/g;
-    $format =~ s/%h/$height/g;
+    my $id   = $asset->id;
+    $format =~ s/%p/$proto/g;
     $format =~ s/%f/$base/g;
     $format =~ s/%i/$id/g;
-    $format =~ s/%X/$X/g;
-    $format =~ s/%Y/$Y/g;
     $format =~ s/%x/$ext/g;
     return $format;
 }

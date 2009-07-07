@@ -36,6 +36,18 @@
   right: 12px;
   top: 130px;
 }
+#prototypes li.nothumb .proto_size {
+  display: none;
+}
+#prototypes li .proto_size {
+  position: absolute;
+  left: 12px;
+  top: 123px;
+  background: black;
+  opacity: .5;
+  color: white;
+  padding: 2px;
+}
 #prototypes li .proto_preview {
   width: 175px;
   height: 135px; 

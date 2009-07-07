@@ -19,6 +19,7 @@
       'max_width': <$mt:var name="max_width"$>, 
       'max_height': <$mt:var name="max_height"$>, 
       'label': '<$mt:var name="proto_label" encode_js="1"$>', 
+      'size': '<$mt:var name="cropped_size"$>',
       'x': <$mt:var name="cropped_x" default="0"$>, 'y': <$mt:var name="cropped_y" default="0"$>, 
       'w': <$mt:var name="cropped_w" default="0"$>, 'h': <$mt:var name="cropped_h" default="0"$> 
     };
@@ -51,6 +52,7 @@
           },
           function(data){
             $('#prototypes li#proto-'+id+' .proto_preview').html('<span>?</span>' );
+            $('#prototypes li#proto-'+data.proto_id).find('.proto_size').html('');
           },
           "json"
         );
@@ -96,7 +98,8 @@
           'y':coords.y,
           'w':coords.w,
           'h':coords.h,
-          'compress':$('#compress-field select').val(),
+          'type':$('#type-field select').val(),
+          'quality':$('#quality-field select').val(),
           'annotate':annotate ? 1 : 0,
           'text':$('#annotation-field input').val(),
           'text_loc':$('#annotation_loc-field select').val(),
@@ -107,6 +110,7 @@
           $('#prototypes li#proto-'+data.proto_id).removeClass('inprogress');
           $('#prototypes li#proto-'+data.proto_id+' .proto_preview').html('<img src="'+data.cropped_url + '" width="175" />' );
 	  $('#prototypes li#proto-'+data.proto_id).removeClass('nothumb');
+          $('#prototypes li#proto-'+data.proto_id).find('.proto_size').html(data.cropped_size);
         },
         "json"
       );
@@ -139,6 +143,7 @@
     <div class="proto_preview"><mt:if name="thumbnail_url"><img src="<$mt:var name="thumbnail_url"$>" width="175" /><mt:else><span>?</span></mt:if></div>
     <div class="proto_action"><a href="javascript:void(0);"><img src="<$mt:StaticWebPath$>plugins/ImageCropper/css/delete.gif" /></a></div>
     <div class="proto_progress"><img src="<$mt:StaticWebPath$>plugins/ImageCropper/css/indicator.gif" width="16" height="16" /></div>
+    <div class="proto_size"><$mt:var name="cropped_size" default=""$></div>
     <div class="proto_info">
       <$mt:var name="proto_label"$><br />
       (<$mt:var name="max_width"$> x <$mt:var name="max_height"$>)
@@ -201,23 +206,34 @@
 </div>
 
 <mtapp:setting
-    id="compress"
-    label_class="top-label"
-    label="<__trans phrase="Thumbnail Compression">"
+    id="quality"
+    label="<__trans phrase="Thumbnail Quality">"
     hint="non-functional right now"
     show_hint="1">
-       <select name="compress">
-         <option value"0">None</option>
-         <option>10</option>
-         <option>20</option>
-         <option>30</option>
-         <option>40</option>
-         <option>50</option>
-         <option>60</option>
-         <option>70</option>
-         <option>80</option>
-         <option>90</option>
-         <option value="100">Maximum</option>
+       <select name="quality">
+         <option value="0">0 - Lowest</option>
+         <option value="10">1</option>
+         <option value="20">2</option>
+         <option value="30">3</option>
+         <option value="40">4</option>
+         <option value="50">5</option>
+         <option value="60">6</option>
+         <option value="70">7</option>
+         <option value="80">8</option>
+         <option value="90">9</option>
+         <option value="100">10 - Highest</option>
+       </select>
+</mtapp:setting>
+
+<mtapp:setting
+    id="type"
+    label="<__trans phrase="Thumbnail Image Type">"
+    hint="non-functional right now"
+    show_hint="1">
+       <select name="type">
+         <option value="jpg">JPEG</option>
+         <option value="png">PNG</option>
+         <option value="gif">GIF</option>
        </select>
 </mtapp:setting>
 
