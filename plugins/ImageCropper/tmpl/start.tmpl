@@ -173,7 +173,7 @@
     show_hint="0">
       <label><input type="checkbox" name="include_annotation" value="1" onclick="toggleAnnotation(this);" /> Include Text Annotation?</label>
 </mtapp:setting>
-<div id="annotation-settings" class="pkg">
+<div id="annotation-settings" class="pkg settings-group">
 <mtapp:setting
     id="annotation"
     label_class="top-label"
@@ -205,6 +205,19 @@
 </mtapp:setting>
 </div>
 
+<div id="compress-settings" class="pkg settings-group">
+<mtapp:setting
+    id="type"
+    label="<__trans phrase="Thumbnail Image Type">"
+    hint="non-functional right now"
+    show_hint="1">
+       <select name="type">
+         <option value="jpg">JPEG</option>
+         <option value="png">PNG</option>
+         <option value="gif">GIF</option>
+       </select>
+</mtapp:setting>
+
 <mtapp:setting
     id="quality"
     label="<__trans phrase="Thumbnail Quality">"
@@ -224,18 +237,7 @@
          <option value="100">10 - Highest</option>
        </select>
 </mtapp:setting>
-
-<mtapp:setting
-    id="type"
-    label="<__trans phrase="Thumbnail Image Type">"
-    hint="non-functional right now"
-    show_hint="1">
-       <select name="type">
-         <option value="jpg">JPEG</option>
-         <option value="png">PNG</option>
-         <option value="gif">GIF</option>
-       </select>
-</mtapp:setting>
+</div>
 
 <div class="actions-bar">
   <div class="actions-bar-inner pkg actions">

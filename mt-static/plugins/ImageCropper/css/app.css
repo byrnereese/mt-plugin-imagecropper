@@ -1,7 +1,7 @@
 #annotation-settings {
   display: none;
 }
-#annotation-settings .field {
+.settings-group .field {
   width: auto;
   float: left;
   margin-right: 20px;
@@ -41,12 +41,16 @@
 }
 #prototypes li .proto_size {
   position: absolute;
-  left: 12px;
-  top: 123px;
+  left: 10px;
+  top: 127px;
   background: black;
   opacity: .5;
   color: white;
-  padding: 2px;
+  padding: 2px 3px 2px 3px;
+  font-size: 10px;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
 }
 #prototypes li .proto_preview {
   width: 175px;

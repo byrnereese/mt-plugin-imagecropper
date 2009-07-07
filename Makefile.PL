@@ -2,6 +2,6 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME            => 'ImageCropper',
-    VERSION         => '0.9.4',
+    VERSION         => '0.9.5',
     DISTNAME        => 'ImageCropper',
 );
