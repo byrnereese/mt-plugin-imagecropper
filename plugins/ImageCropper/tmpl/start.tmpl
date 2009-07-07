@@ -140,7 +140,9 @@
 <ul id="prototypes" class="pkg">
 <mt:loop name="prototype_loop">
   <li id="proto-<$mt:var name="proto_id"$>" class="<mt:unless name="thumbnail_url">nothumb</mt:unless>">
-    <div class="proto_preview"><mt:if name="thumbnail_url"><img src="<$mt:var name="thumbnail_url"$>" width="175" /><mt:else><span>?</span></mt:if></div>
+    <div class="proto_preview">
+      <mt:if name="thumbnail_url"><img src="<$mt:var name="thumbnail_url"$>" <mt:unless name="smaller_vp"><mt:if name="is_tall">height="135"<mt:else>width="175"</mt:if></mt:unless> /><mt:else><span>?</span></mt:if>
+    </div>
     <div class="proto_action"><a href="javascript:void(0);"><img src="<$mt:StaticWebPath$>plugins/ImageCropper/css/delete.gif" /></a></div>
     <div class="proto_progress"><img src="<$mt:StaticWebPath$>plugins/ImageCropper/css/indicator.gif" width="16" height="16" /></div>
     <div class="proto_size"><$mt:var name="cropped_size" default=""$></div>

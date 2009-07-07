@@ -174,6 +174,9 @@ sub gen_thumbnails_start {
 	    cropped_size  => $size,
 	    max_width     => $p->max_width,
 	    max_height    => $p->max_height,
+	    is_tall       => $p->max_height > $p->max_width,
+	    smaller_vp    => ($p->max_height < 135 && $p->max_width < 175),
+	    # 175x135
 	};
     }
     $param->{prototype_loop} = \@loop if @loop;

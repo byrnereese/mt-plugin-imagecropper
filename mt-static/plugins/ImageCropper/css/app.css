@@ -59,6 +59,11 @@
   background-color: #F3F6F9;
   position: relative;
   overflow: hidden;
+  text-align: center;
+}
+#prototypes li .proto_preview img {
+  position: relative;
+  vertical-align: middle;
 }
 #prototypes li .proto_info {
   text-align: center;
