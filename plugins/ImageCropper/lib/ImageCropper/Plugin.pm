@@ -35,10 +35,10 @@ sub hdlr_cropped_asset {
 	prototype_id => $prototype->id,
 	asset_id => $a->id,
     });
-    unless ($map) {
+    my $cropped = MT->model('asset')->load( $map->cropped_asset_id );
+    unless ($map && $cropped) {
         return _hdlr_pass_tokens_else(@_);
     }
-    my $cropped = MT->model('asset')->load( $map->cropped_asset_id );
     local $ctx->{__stash}{'asset'} = $cropped;
     defined($out = $ctx->slurp($args,$cond)) or return;
     return $out;

@@ -14,7 +14,6 @@ sub file_size {
 	} elsif ( $size < 1024000 ) { $sizef = sprintf( "%.1f KB", $size / 1024 );
 	} else { $sizef = sprintf( "%.1f MB", $size / 1024000 );
 	}
-	MT->log({ message => $a->file_path . " is " . $sizef });
     }
     return $sizef;
 }
@@ -64,6 +63,7 @@ sub annotate {
 	    $rot = 90; $x = 12;
 	} 
     }
+    MT->log({ message => "Annotating image with text: '$txt' ($loc, $rot)" });
     my $err = $magick->Annotate(
 	'pointsize' => '10', 
         'pen'       => 'white',
@@ -72,10 +72,7 @@ sub annotate {
 	'rotate'    => $rot,
 	'x'         => $x,
     );
-    return $image->error(
-	MT->translate(
-	    "Error annotating image with [_1]: [_2]", 
-	    $txt, $err)) if $err;
+    MT->log("Error annotating image with $txt: $err") if $err;
 
     wantarray ? ($magick->ImageToBlob) : $magick->ImageToBlob;
 }
