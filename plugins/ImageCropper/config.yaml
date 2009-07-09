@@ -3,8 +3,36 @@ name: 'Image Cropper'
 plugin_author: 'Endevver, LLC.'
 plugin_link: 'http://endevver.com/'
 description: "Allows users to define a set of thumbnail prototypes that others can easily generate using a drag-and-drop image cropping tool."
-version: 0.9.6
+version: 0.9.7
 schema_version: 5
+
+blog_config_template: '<mt:PluginConfigForm id="ImageCropper">'
+settings:
+  default_compress:
+    scope: blog
+    default: '50'
+  annotate_fontfam:
+    scope: blog
+    default: 'Helvetica'
+  annotate_fontsize:
+    scope: blog
+    default: '10'
+plugin_config:
+  ImageCropper:
+    fieldset1:
+      default_compress:
+        type: select
+        label: 'Default Compression'
+        tag: 'DefaultCropperCompression'
+        values: 1,2,3,4,5,6,7,8,9,10
+      annotate_fontfam:
+        type: text
+        label: 'Annotation Font'
+        tag: 'CropperFontFamily'
+      annotate_fontsize:
+        type: text
+        label: 'Annotation Font Size'
+        tag: 'CropperFontSize'
 
 config_settings:
   DefaultCroppedImageText: 

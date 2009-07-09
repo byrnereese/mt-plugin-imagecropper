@@ -235,6 +235,7 @@ sub crop {
     my $quality  = $q->param('quality');
     my $annotate = $q->param('annotate');
     my $text     = $q->param('text');
+    my $text_size = $q->param('text_size');
     my $text_loc = $q->param('text_loc');
     my $text_rot = $q->param('text_rot');
     my $id       = $q->param('id');
@@ -311,8 +312,13 @@ sub crop {
 	Height => $prototype->max_height,
     );
     if ($annotate && $text) {
+	my $plugin = MT->component("ImageCropper");
+	my $scope = "blog:" . $blog->id;
+	my $fam = $plugin->get_config_value('annotate_fontfam',$scope);
 	$data = annotate( $img,
 			  text     => $text,
+			  family   => $fam,
+			  size     => $text_size,
 			  location => $text_loc,
 			  rotation => $text_rot,
         );

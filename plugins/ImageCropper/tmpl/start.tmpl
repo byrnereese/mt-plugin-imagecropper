@@ -105,6 +105,7 @@
           'quality':$('#quality-field select').val(),
           'annotate':annotate ? 1 : 0,
           'text':$('#annotation-field input').val(),
+          'text_size':$('#annotation_size-field input').val(),
           'text_loc':$('#annotation_loc-field select').val(),
           'text_rot':$('#annotation_rot-field select').val(),
           'magic_token':'<mt:var name="magic_token">'
@@ -185,7 +186,14 @@
     label_class="top-label"
     label="<__trans phrase="Text Annotation">"
     show_hint="0">
-      <input type="text" name="annotation" value="<$mt:DefaultCroppedImageText encode_html="1"$>" size="50" />
+      <input type="text" name="annotation" value="<$mt:DefaultCroppedImageText encode_html="1"$>" size="30" />
+</mtapp:setting>
+<mtapp:setting
+    id="annotation_size"
+    label_class="top-label"
+    label="<__trans phrase="Font Size">"
+    show_hint="0">
+       <input type="text" name="annotation_size" value="<$mt:CropperFontSize$>" size="5" />
 </mtapp:setting>
 <mtapp:setting
     id="annotation_loc"
@@ -227,20 +235,19 @@
 <mtapp:setting
     id="quality"
     label="<__trans phrase="Thumbnail Quality">"
-    hint="non-functional right now"
     show_hint="1">
        <select name="quality">
-         <option value="1">0 - Lowest</option>
-         <option value="10">1</option>
-         <option value="20">2</option>
-         <option value="30">3</option>
-         <option value="40">4</option>
-         <option value="50" selected>5</option>
-         <option value="60">6</option>
-         <option value="70">7</option>
-         <option value="80">8</option>
-         <option value="90">9</option>
-         <option value="100">10 - Highest</option>
+         <option value="1"<mt:if tag="DefaultCropperCompression" eq="0"> selected</mt:if>>0 - Lowest</option>
+         <option value="10"<mt:if tag="DefaultCropperCompression" eq="1"> selected</mt:if>>1</option>
+         <option value="20"<mt:if tag="DefaultCropperCompression" eq="2"> selected</mt:if>>2</option>
+         <option value="30"<mt:if tag="DefaultCropperCompression" eq="3"> selected</mt:if>>3</option>
+         <option value="40"<mt:if tag="DefaultCropperCompression" eq="4"> selected</mt:if>>4</option>
+         <option value="50"<mt:if tag="DefaultCropperCompression" eq="5"> selected</mt:if>>5</option>
+         <option value="60"<mt:if tag="DefaultCropperCompression" eq="6"> selected</mt:if>>6</option>
+         <option value="70"<mt:if tag="DefaultCropperCompression" eq="7"> selected</mt:if>>7</option>
+         <option value="80"<mt:if tag="DefaultCropperCompression" eq="8"> selected</mt:if>>8</option>
+         <option value="90"<mt:if tag="DefaultCropperCompression" eq="9"> selected</mt:if>>9</option>
+         <option value="100"<mt:if tag="DefaultCropperCompression" eq="10"> selected</mt:if>>10 - Highest</option>
        </select>
 </mtapp:setting>
 </div>

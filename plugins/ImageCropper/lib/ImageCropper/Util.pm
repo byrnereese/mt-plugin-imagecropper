@@ -49,7 +49,7 @@ sub crop_image {
 sub annotate {
     my $image = shift;
     my %param = @_;
-    my ($txt, $loc, $ori) = @param{qw( text location rotation )};
+    my ($txt, $loc, $ori, $size, $family) = @param{qw( text location rotation size family )};
     my $magick = $image->{magick};
     my ($rot, $x) = (0, 0);
     if ($ori eq 'Vertical') {
@@ -63,10 +63,11 @@ sub annotate {
 	    $rot = 90; $x = 12;
 	} 
     }
-    MT->log({ message => "Annotating image with text: '$txt' ($loc, $rot)" });
+    MT->log({ message => "Annotating image with text: '$txt' ($loc, $rot degrees, $family at $size pt.)" });
     my $err = $magick->Annotate(
-	'pointsize' => '10', 
         'pen'       => 'white',
+	'font'    => $family,
+	'pointsize' => $size, 
 	'text'      => $txt, 
         'gravity'   => $loc,
 	'rotate'    => $rot,
