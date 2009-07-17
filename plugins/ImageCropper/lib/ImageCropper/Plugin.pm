@@ -15,6 +15,18 @@ sub hdlr_default_text {
     return $cfg->DefaultCroppedImageText;
 }
 
+sub find_prototype_id {
+    my ($ctx, $label) = @_;
+    my $blog = $ctx->stash('blog');
+    my $ts = $blog->template_set;
+    return undef unless $ts;
+    my $protos = MT->registry('template_sets')->{$ts}->{thumbnail_prototypes};
+    foreach (keys %$protos) {
+	MT->log({ message => "Looking for $label in $_" });
+	return $_ if (&{$protos->{$_}->{label}} eq $label);
+    }
+}
+
 sub hdlr_cropped_asset {
     my ( $ctx, $args, $cond ) = @_;
     my $l = $args->{label};
@@ -28,13 +40,22 @@ sub hdlr_cropped_asset {
 	blog_id => $blog->id,
 	label => $l,
     });
-    unless ($prototype) {
+    my $map;
+    if ($prototype) {
+	$map = MT->model('thumbnail_prototype_map')->load({
+	    prototype_key => 'custom_' . $prototype->id,
+	    asset_id => $a->id,
+        });
+    } elsif (my $id = find_prototype_id($ctx, $l)) {
+	$map = MT->model('thumbnail_prototype_map')->load({
+	    prototype_key => $blog->template_set . "___" . $id,
+	    asset_id => $a->id,
+        });
+    }
+    unless ($map) {
 	return $ctx->error("A prototype could not be found with the label '$l'");
     }
-    my $map = MT->model('thumbnail_prototype_map')->load({
-	prototype_id => $prototype->id,
-	asset_id => $a->id,
-    });
+
     my $cropped = MT->model('asset')->load( $map->cropped_asset_id );
     unless ($map && $cropped) {
         return _hdlr_pass_tokens_else(@_);
@@ -92,13 +113,50 @@ sub edit_prototype {
     return $app->load_tmpl( 'dialog/edit.tmpl', $param );
 }
 
+sub load_ts_prototype {
+    my $app = shift;
+    my ($key) = @_;
+    my ($ts,$id) = split('___',$key);
+    return $app->registry('template_sets')->{$ts}->{thumbnail_prototypes}->{$id};
+}
+
+sub load_ts_prototypes {
+    my $app = shift;
+    my $blog = $app->blog;
+
+    my @protos;
+    if ($blog->template_set) {
+	my $ts = $blog->template_set;
+	my $ps = $app->registry('template_sets')->{$ts}->{thumbnail_prototypes};
+	foreach (keys %$ps) {
+	    my $p = $ps->{$_};
+	    push @protos, { 
+		id => $_,
+		type => 'template_set',
+		key => "$ts::$_",
+		template_set => $ts,
+		blog_id => $blog->id,
+		label => &{$p->{label}},
+		max_width => $p->{max_width},
+		max_height => $p->{max_height},
+	    }
+	}
+    }
+    return \@protos;
+}
+
 sub list_prototypes {
     my $app = shift;
     my ($params) = @_;
     $params ||= {};
     my $q = $app->{query};
+    my $blog = $app->blog;
 
+    my $loop = load_ts_prototypes($app); 
+    $params->{prototype_loop}  = $loop;
     $params->{prototype_saved} = $q->param('prototype_saved');
+
+    $params->{template_set_name} = $app->registry('template_sets')->{$blog->template_set}->{label};
 
     my $code = sub {
         my ($obj, $row) = @_;
@@ -144,12 +202,32 @@ sub gen_thumbnails_start {
     my $obj = MT->model('asset')->load($id) or
 	return $app->error('Could not load asset.');
     my ($bw,$bh) = _box_dim($obj);
-    my @protos = MT->model('thumbnail_prototype')->load({ blog_id => $app->blog->id });
+    my @protos;
+    my @custom = MT->model('thumbnail_prototype')->load({ blog_id => $app->blog->id });
+    foreach (@custom) {
+	push @protos, {
+	    id => $_->id,
+	    key => 'custom_' . $_->id,
+	    label => $_->label,
+	    max_width => $_->max_width,
+	    max_height => $_->max_height,
+	};
+    }
+    my $tsprotos = load_ts_prototypes($app); 
+    foreach (@$tsprotos) {
+	push @protos, {
+	    id => $_->{template_set} . '___' . $_->{id},
+	    key => $_->{template_set} . '___' . $_->{id},
+	    label => $_->{label},
+	    max_width => $_->{max_width},
+	    max_height => $_->{max_height},
+	};
+    }
     my @loop;
     foreach my $p (@protos) {
 	my $map = MT->model('thumbnail_prototype_map')->load({
 	    asset_id => $obj->id,
-	    prototype_id => $p->id,
+	    prototype_key => $p->{key},
         });
 	my ($url,$x,$y,$w,$h,$size);
 	if ($map) {
@@ -164,18 +242,19 @@ sub gen_thumbnails_start {
 	    }
 	}
 	push @loop, {
-	    proto_id      => $p->id,
-	    proto_label   => $p->label,
+	    proto_id      => $p->{id},
+	    proto_key     => $p->{key},
+	    proto_label   => $p->{label},
 	    thumbnail_url => $url,
 	    cropped_x     => $x,
 	    cropped_y     => $y,
 	    cropped_w     => $w,
 	    cropped_h     => $h,
 	    cropped_size  => $size,
-	    max_width     => $p->max_width,
-	    max_height    => $p->max_height,
-	    is_tall       => $p->max_height > $p->max_width,
-	    smaller_vp    => ($p->max_height < 135 && $p->max_width < 175),
+	    max_width     => $p->{max_width},
+	    max_height    => $p->{max_height},
+	    is_tall       => $p->{max_height} > $p->{max_width},
+	    smaller_vp    => ($p->{max_height} < 135 && $p->{max_width} < 175),
 	    # 175x135
 	};
     }
@@ -199,11 +278,11 @@ sub delete_crop {
     my $blog = $app->blog;
 
     my $id     = $q->param('id');
-    my $pid    = $q->param('prototype');
+    my $key    = $q->param('prototype');
 
     my $oldmap = MT->model('thumbnail_prototype_map')->load({
 	asset_id => $id,
-	prototype_id => $pid,
+	prototype_key => $key,
     });
     if ($oldmap) {
 	my $oldasset = MT->model('asset')->load( $oldmap->cropped_asset_id );
@@ -213,6 +292,7 @@ sub delete_crop {
 	    or MT->log({ blog_id => $blog->id, message => "Error removing prototype map." });
     }
     my $result = {
+	proto_key => $key,
 	success => 1,
     };
     return _send_json_response($app, $result);
@@ -227,26 +307,35 @@ sub crop {
     my $fmgr;
     my $result;
 
-    my $X        = $q->param('x');
-    my $Y        = $q->param('y');
-    my $width    = $q->param('w');
-    my $height   = $q->param('h');
-    my $type     = $q->param('type');
-    my $quality  = $q->param('quality');
-    my $annotate = $q->param('annotate');
-    my $text     = $q->param('text');
+    my $X         = $q->param('x');
+    my $Y         = $q->param('y');
+    my $width     = $q->param('w');
+    my $height    = $q->param('h');
+    my $type      = $q->param('type');
+    my $quality   = $q->param('quality');
+    my $annotate  = $q->param('annotate');
+    my $text      = $q->param('text');
     my $text_size = $q->param('text_size');
-    my $text_loc = $q->param('text_loc');
-    my $text_rot = $q->param('text_rot');
-    my $id       = $q->param('id');
-    my $pid      = $q->param('prototype');
+    my $text_loc  = $q->param('text_loc');
+    my $text_rot  = $q->param('text_rot');
+    my $id        = $q->param('asset');
+    my $key       = $q->param('key');
+
 
     my $asset     = MT->model('asset')->load( $id );
-    my $prototype = MT->model('thumbnail_prototype')->load( $pid );
-
-    my $cropped   = crop_filename( $asset, 
-				   Prototype => $pid,
-				   Type => $type,
+    my $prototype;
+    if ($key =~ /custom_(\d+)/) {
+	$prototype = MT->model('thumbnail_prototype')->load( $1 );
+    } else {
+	$prototype = MT->model('thumbnail_prototype')->new;
+	my $p = load_ts_prototype($app,$key);
+	foreach (qw( max_width max_height label )) {
+	    $prototype->$_($p->{$_});
+	}
+    }
+    my $cropped = crop_filename( $asset, 
+				 Prototype => $key,
+				 Type => $type,
     );
     my $cache_path; my $cache_url;
     my $archivepath = $blog->archive_path;
@@ -255,9 +344,9 @@ sub crop {
     $cache_path =~ s!%a!$archivepath!;
     $cache_url =~ s!%a!$archiveurl!;
     my $cropped_path = File::Spec->catfile( $cache_path, $cropped );
-    MT->log({ blog_id => $blog->id, message => "Cropped filename: $cropped_path" });
+    #MT->log({ blog_id => $blog->id, message => "Cropped filename: $cropped_path" });
     my $cropped_url = $cache_url . '/' . $cropped;
-    MT->log({ blog_id => $blog->id, message => "Cropped URL: $cropped_url" });
+    #MT->log({ blog_id => $blog->id, message => "Cropped URL: $cropped_url" });
     my ( $base, $path, $ext ) =
 	File::Basename::fileparse( $cropped, qr/[A-Za-z0-9]+$/ );
     my $asset_cropped = new MT::Asset::Image;
@@ -275,20 +364,22 @@ sub crop {
 
     my $oldmap = MT->model('thumbnail_prototype_map')->load({
 	asset_id => $asset->id,
-	prototype_id => $prototype->id,
+	prototype_key => $key,
     });
     if ($oldmap) {
 	my $oldasset = MT->model('asset')->load( $oldmap->cropped_asset_id );
-	MT->log({ blog_id => $blog->id, message => "Removing: " . $oldasset->label });
-	$oldasset->remove()
-	    or MT->log({ blog_id => $blog->id, message => "Error removing asset: " . $oldmap->cropped_asset_id });
+	if ($oldasset) {
+	    MT->log({ blog_id => $blog->id, message => "Removing: " . $oldasset->label });
+	    $oldasset->remove()
+		or MT->log({ blog_id => $blog->id, message => "Error removing asset: " . $oldmap->cropped_asset_id });
+	}
 	$oldmap->remove()
 	    or MT->log({ blog_id => $blog->id, message => "Error removing prototype map." });
     }
 
     my $map = MT->model('thumbnail_prototype_map')->new;
     $map->asset_id($asset->id);
-    $map->prototype_id($prototype->id);
+    $map->prototype_key($key);
     $map->cropped_asset_id($asset_cropped->id);
     $map->cropped_x($X);
     $map->cropped_y($Y);
@@ -355,11 +446,12 @@ sub crop {
 
     if ($cropped_url =~ /^%r/) {
 	my $p = $blog->site_url;
+	$p = "$p/" if $p !~ /\/$/;
 	$cropped_url =~ s/%r\/?/$p/;
     }
     $result = {
 	error        => $error,
-        proto_id     => $prototype->id,
+        proto_key    => $key,
 	cropped      => $cropped,
 	cropped_path => $cropped_path,
 	cropped_url  => $cropped_url,

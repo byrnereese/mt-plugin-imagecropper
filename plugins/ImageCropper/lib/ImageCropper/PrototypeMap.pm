@@ -11,7 +11,8 @@ __PACKAGE__->install_properties({
         'id'               => 'integer not null auto_increment',
         'asset_id'         => 'integer not null',
         'cropped_asset_id' => 'integer not null',
-        'prototype_id'     => 'integer not null',
+        'prototype_id'     => 'integer', # obsolete
+        'prototype_key'    => 'string(100) not null',
 	'cropped_x'        => 'integer not null',
 	'cropped_y'        => 'integer not null',
 	'cropped_w'        => 'integer not null',
@@ -23,6 +24,7 @@ __PACKAGE__->install_properties({
     },
     indexes => {
         id => 1,
+	prototype_key => 1,
         asset_id => 1,
     },
     datasource => 'cropper_prototypemaps',

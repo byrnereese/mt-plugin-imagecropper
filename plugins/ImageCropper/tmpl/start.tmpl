@@ -16,7 +16,7 @@
     var asset_id = <$mt:AssetID$>;
     var selected = 0;
 <mt:loop name="prototype_loop">
-    protos[<$mt:var name="proto_id"$>] = { 
+    protos['<$mt:var name="proto_key"$>'] = { 
       'max_width': <$mt:var name="max_width"$>, 
       'max_height': <$mt:var name="max_height"$>, 
       'label': '<$mt:var name="proto_label" encode_js="1"$>', 
@@ -53,7 +53,7 @@
           },
           function(data){
             $('#prototypes li#proto-'+id+' .proto_preview').html('<span>?</span>' );
-            $('#prototypes li#proto-'+data.proto_id).find('.proto_size').html('');
+            $('#prototypes li#proto-'+id).find('.proto_size').html('');
           },
           "json"
         );
@@ -83,7 +83,7 @@
     }
     function cropAsset() {
       if (!coords) { return; }
-      if (inprocess[selected]) { return; }
+      //if (inprocess[selected]) { return; }
       inprocess[selected] = 1;
       // TODO - progress indicator
       protos[ selected ].x = coords.x;
@@ -95,8 +95,8 @@
       $.post("<mt:AdminCGIPath><mt:AdminScript>", {
           '__mode': "imagecropper_crop",
           'blog_id':"<mt:var name="blog_id">",
-          'id':asset_id,
-          'prototype':selected,
+          'asset':asset_id,
+          'key':selected,
           'x':coords.x,
           'y':coords.y,
           'w':coords.w,
@@ -111,11 +111,12 @@
           'magic_token':'<mt:var name="magic_token">'
         },
         function(data){
-          inprocess[data.proto_id] = 0;
-          $('#prototypes li#proto-'+data.proto_id).removeClass('inprogress');
-          $('#prototypes li#proto-'+data.proto_id+' .proto_preview').html('<img src="'+data.cropped_url + '" width="175" />' );
-	  $('#prototypes li#proto-'+data.proto_id).removeClass('nothumb');
-          $('#prototypes li#proto-'+data.proto_id).find('.proto_size').html(data.cropped_size);
+          inprocess[data.proto_key] = 0;
+	  var li = $('#prototypes li#proto-'+data.proto_key);
+	  li.removeClass('inprogress');
+          li.find('.proto_preview').html('<img src="'+ data.cropped_url + '" width="175" />' );
+	  li.removeClass('nothumb');
+          li.find('.proto_size').html(data.cropped_size);
         },
         "json"
       );
@@ -144,7 +145,7 @@
 <div class="scrollable">
 <ul id="prototypes" class="pkg">
 <mt:loop name="prototype_loop">
-  <li id="proto-<$mt:var name="proto_id"$>" class="<mt:unless name="thumbnail_url">nothumb</mt:unless>">
+  <li id="proto-<$mt:var name="proto_key"$>" class="<mt:unless name="thumbnail_url">nothumb</mt:unless>">
     <div class="proto_preview">
       <mt:if name="thumbnail_url"><img src="<$mt:var name="thumbnail_url"$>" <mt:unless name="smaller_vp"><mt:if name="is_tall">height="135"<mt:else>width="175"</mt:if></mt:unless> /><mt:else><span>?</span></mt:if>
     </div>

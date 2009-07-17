@@ -28,6 +28,7 @@
         #imagecropper-listing-table .date { white-space: nowrap; }
         #main-content { padding-top: 5px; }
         .content-nav #main-content .msg { margin-left: 0px; }
+        .listing-header { padding: 5px 0 10px 10px; }
     // -->
     </style>
 </mt:setvarblock>
@@ -49,7 +50,6 @@
         </mtapp:statusmsg>
     </mt:if>
     </div>
-    <p id="create-new-link"><a href="javascript:void(0)" onclick="openDialog(null,'edit_prototype','blog_id=<mt:var name="blog_id">');return false;" class="icon-left icon-create"><__trans phrase="Create Thumbnail Prototype"></a></p>
 </mt:setvarblock>
 
 <mt:setvarblock name="action_buttons">
@@ -62,7 +62,12 @@
 
 <$mt:include name="include/header.tmpl"$>
 
-<mtapp:listing type="prototypes" default="<__trans phrase="No thumbnail prototypes could be found.">" empty_message="<__trans phrase="No thumbnail prototypes could be found.">">
+<mt:setvarblock name="listing_header">
+<h3>Custom Thumbnail Prototypes</h3>
+    <p id="create-new-link"><a href="javascript:void(0)" onclick="openDialog(null,'edit_prototype','blog_id=<mt:var name="blog_id">');return false;" class="icon-left icon-create"><__trans phrase="Create Thumbnail Prototype"></a></p>
+</mt:setvarblock>
+
+<mtapp:listing type="prototypes" default="<__trans phrase="No custom thumbnail prototypes could be found.">" empty_message="<__trans phrase="No custom thumbnail prototypes could be found.">" hide_pager="1" class="show_all">
     <mt:if name="__first__">
     <thead>
         <tr>
@@ -95,5 +100,44 @@
     <mt:if name="__last__">
     </tbody>
     </mt:if>
+<mt:else>
+    <div id="<$mt:var name="template_type" default="template" escape="html"$>-listing" class="listing zero-state-listing zero-state">
+        <div class="listing-header">
+            <$mt:var name="listing_header"$>
+        </div>
+        <mtapp:statusmsg
+            id="zero-state"
+            class="info zero-state">
+            <__trans phrase="No thumbnail prototypes could be found.">
+        </mtapp:statusmsg>
+    </div>
 </mtapp:listing>
+
+<mt:if name="prototype_loop">
+<mt:setvarblock name="action_buttons"></mt:setvarblock>
+<mt:setvarblock name="listing_header">
+<h3>Thumbnail Prototypes for <mt:var name="template_set_name"></h3>
+</mt:setvarblock>
+<mtapp:listing loop="prototype_loop" type="tsprototypes" default="<__trans phrase="No thumbnail prototypes could be found.">" empty_message="<__trans phrase="No thumbnail prototypes could be found.">" hide_pager="1" class="show_all">
+    <mt:if name="__first__">
+    <thead>
+        <tr>
+            <th id="l-lbl"><__trans phrase="Label"></th>
+            <th id="l-mxw"><__trans phrase="Max Width"></th>
+            <th id="l-mxh"><__trans phrase="Max Height"></th>
+        </tr>
+    </thead>
+    <tbody>
+    </mt:if>
+        <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
+            <td><mt:var name="label" escape="html"></td>
+            <td><mt:var name="max_width" escape="html"></td>
+            <td><mt:var name="max_height" escape="html"></td>
+        </tr>
+    <mt:if name="__last__">
+    </tbody>
+    </mt:if>
+</mtapp:listing>
+</mt:if>
+
 <$mt:include name="include/footer.tmpl"$>
