@@ -237,18 +237,20 @@
     id="quality"
     label="<__trans phrase="Thumbnail Quality">"
     show_hint="1">
+       <mt:setvarblock name="def"><$mt:DefaultCropperCompression$></mt:setvarblock>
+       <mt:if name="def" eq=""><$mt:var name="def" value="5"$></mt:if>
        <select name="quality">
-         <option value="1"<mt:if tag="DefaultCropperCompression" eq="0"> selected</mt:if>>0 - Lowest</option>
-         <option value="10"<mt:if tag="DefaultCropperCompression" eq="1"> selected</mt:if>>1</option>
-         <option value="20"<mt:if tag="DefaultCropperCompression" eq="2"> selected</mt:if>>2</option>
-         <option value="30"<mt:if tag="DefaultCropperCompression" eq="3"> selected</mt:if>>3</option>
-         <option value="40"<mt:if tag="DefaultCropperCompression" eq="4"> selected</mt:if>>4</option>
-         <option value="50"<mt:if tag="DefaultCropperCompression" eq="5"> selected</mt:if>>5</option>
-         <option value="60"<mt:if tag="DefaultCropperCompression" eq="6"> selected</mt:if>>6</option>
-         <option value="70"<mt:if tag="DefaultCropperCompression" eq="7"> selected</mt:if>>7</option>
-         <option value="80"<mt:if tag="DefaultCropperCompression" eq="8"> selected</mt:if>>8</option>
-         <option value="90"<mt:if tag="DefaultCropperCompression" eq="9"> selected</mt:if>>9</option>
-         <option value="100"<mt:if tag="DefaultCropperCompression" eq="10"> selected</mt:if>>10 - Highest</option>
+         <option value="1"<mt:if name="def" eq="0"> selected</mt:if>>0 - Lowest</option>
+         <option value="10"<mt:if name="def" eq="1"> selected</mt:if>>1</option>
+         <option value="20"<mt:if name="def" eq="2"> selected</mt:if>>2</option>
+         <option value="30"<mt:if name="def" eq="3"> selected</mt:if>>3</option>
+         <option value="40"<mt:if name="def" eq="4"> selected</mt:if>>4</option>
+         <option value="50"<mt:if name="def" eq="5"> selected</mt:if>>5</option>
+         <option value="60"<mt:if name="def" eq="6"> selected</mt:if>>6</option>
+         <option value="70"<mt:if name="def" eq="7"> selected</mt:if>>7</option>
+         <option value="80"<mt:if name="def" eq="8"> selected</mt:if>>8</option>
+         <option value="90"<mt:if name="def" eq="9"> selected</mt:if>>9</option>
+         <option value="100"<mt:if name="def" eq="10"> selected</mt:if>>10 - Highest</option>
        </select>
 </mtapp:setting>
 </div>

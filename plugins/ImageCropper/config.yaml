@@ -23,7 +23,7 @@ blog_config_template: '<mt:PluginConfigForm id="ImageCropper">'
 settings:
   default_compress:
     scope: blog
-    default: '50'
+    default: '6'
   annotate_fontfam:
     scope: blog
     default: 'Helvetica'
@@ -68,10 +68,12 @@ applications:
         label: Thumbnail Prototypes
         mode: list_prototypes
         order: 500
+        view: blog
     methods:
       list_prototypes: $ImageCropper::ImageCropper::Plugin::list_prototypes
       edit_prototype: $ImageCropper::ImageCropper::Plugin::edit_prototype
       save_prototype: $ImageCropper::ImageCropper::Plugin::save_prototype
+      manage_thumbnails: $ImageCropper::ImageCropper::Plugin::gen_thumbnails_start
       imagecropper_crop: $ImageCropper::ImageCropper::Plugin::crop
       imagecropper_delete_crop: $ImageCropper::ImageCropper::Plugin::delete_crop
     page_actions:
@@ -79,4 +81,4 @@ applications:
         gen_thumbnails: 
           label: 'Generate Thumbnails'
           order: 100
-          code: $ImageCropper::ImageCropper::Plugin::gen_thumbnails_start
+          mode: manage_thumbnails

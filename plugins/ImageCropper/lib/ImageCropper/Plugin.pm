@@ -32,37 +32,40 @@ sub hdlr_cropped_asset {
     my $l = $args->{label};
     my $a = $ctx->stash('asset');
     my $blog = $ctx->stash('blog');
+    my $blog_id = $args->{blog_id};
+    $blog_id = $blog_id unless $blog_id ne '';
+
     my $out;
     return $ctx->_no_asset_error() unless $a;
     my $cropped;
 
+    my $map;
     my $prototype = MT->model('thumbnail_prototype')->load({
-	blog_id => $blog->id,
+	blog_id => $blog_id,
 	label => $l,
     });
-    my $map;
     if ($prototype) {
+	MT->log({ message => "prototype found: " . $prototype->id });
 	$map = MT->model('thumbnail_prototype_map')->load({
 	    prototype_key => 'custom_' . $prototype->id,
 	    asset_id => $a->id,
         });
     } elsif (my $id = find_prototype_id($ctx, $l)) {
+	MT->log({ message => "prototype not found, consulted registry: " . $id });
 	$map = MT->model('thumbnail_prototype_map')->load({
 	    prototype_key => $blog->template_set . "___" . $id,
 	    asset_id => $a->id,
         });
     }
-    unless ($map) {
-	return $ctx->error("A prototype could not be found with the label '$l'");
+    if ($map) {
+	my $cropped = MT->model('asset')->load( $map->cropped_asset_id );
+	if ($cropped) {
+	    local $ctx->{__stash}{'asset'} = $cropped;
+	    defined($out = $ctx->slurp($args,$cond)) or return;
+	    return $out;
+	}
     }
-
-    my $cropped = MT->model('asset')->load( $map->cropped_asset_id );
-    unless ($map && $cropped) {
-        return _hdlr_pass_tokens_else(@_);
-    }
-    local $ctx->{__stash}{'asset'} = $cropped;
-    defined($out = $ctx->slurp($args,$cond)) or return;
-    return $out;
+    return _hdlr_pass_tokens_else(@_);
 }
 
 sub _hdlr_pass_tokens_else {
@@ -152,11 +155,12 @@ sub list_prototypes {
     my $q = $app->{query};
     my $blog = $app->blog;
 
-    my $loop = load_ts_prototypes($app); 
-    $params->{prototype_loop}  = $loop;
+    if ($blog && $app->blog->template_set) {
+	my $loop = load_ts_prototypes($app); 
+	$params->{prototype_loop}  = $loop;
+	$params->{template_set_name} = $app->registry('template_sets')->{$blog->template_set}->{label};
+    }
     $params->{prototype_saved} = $q->param('prototype_saved');
-
-    $params->{template_set_name} = $app->registry('template_sets')->{$blog->template_set}->{label};
 
     my $code = sub {
         my ($obj, $row) = @_;
@@ -169,9 +173,9 @@ sub list_prototypes {
 
         my $ts = $row->{created_on};
 	my $datetime_format = MT::App::CMS::LISTING_DATETIME_FORMAT();
-	my $time_formatted = format_ts( $datetime_format, $ts, $app->blog, 
+	my $time_formatted = format_ts( $datetime_format, $ts, $app->blog ? $app->blog : undef, 
 					$app->user ? $app->user->preferred_language : undef );
-        $row->{created_on_relative} = relative_date($ts, time, $app->blog);
+        $row->{created_on_relative} = relative_date($ts, time, $app->blog ? $app->blog : undef);
         $row->{created_on_formatted} = $time_formatted;
     };
 
@@ -180,7 +184,7 @@ sub list_prototypes {
     $app->listing({
         type     => 'thumbnail_prototype',
         terms    => {
-            blog_id => $app->blog->id,
+            blog_id => ($app->blog ? $app->blog->id : 0),
         },
         args     => {
             sort      => 'created_on',
