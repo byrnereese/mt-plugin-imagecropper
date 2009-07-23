@@ -16,7 +16,7 @@
     function init()
     {
     	// setup
-    	tableSelect = new TC.TableSelect( "imagecropper-listing-table" );
+    	tableSelect = new TC.TableSelect( "prototypes-listing-table" );
     	tableSelect.rowSelect = true;
     }
 
@@ -25,7 +25,7 @@
     </script> 
     <style type="text/css">
     <!--
-        #imagecropper-listing-table .date { white-space: nowrap; }
+        #prototypes-listing-table .date { white-space: nowrap; }
         #main-content { padding-top: 5px; }
         .content-nav #main-content .msg { margin-left: 0px; }
         .listing-header { padding: 5px 0 10px 10px; }
@@ -54,10 +54,14 @@
 
 <mt:setvarblock name="action_buttons">
     <a href="javascript:void(0)"
-        onclick="doForMarkedInThisWindow(getByID('prototype-listing-form'), '<__trans phrase="prototype">', '<__trans phrase="prototypes">', 'id', 'itemset_delete_prototypes'); return false"
+        onclick="doForMarkedInThisWindow(
+            getByID('prototypes-listing-form'),
+            '<__trans phrase="prototype">', '<__trans phrase="prototypes">', 
+            'id', 'delete_prototype'); return false;"
         accesskey="d"
         title="<__trans phrase="Delete selected prototypes (d)">"
         ><__trans phrase="Delete"></a>
+  <!-- more buttons here if you wish -->
 </mt:setvarblock>
 
 <$mt:include name="include/header.tmpl"$>

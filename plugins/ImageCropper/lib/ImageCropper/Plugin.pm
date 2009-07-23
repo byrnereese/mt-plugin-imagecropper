@@ -15,6 +15,18 @@ sub hdlr_default_text {
     return $cfg->DefaultCroppedImageText;
 }
 
+sub del_prototype {
+    my ($app) = @_;
+    $app->validate_magic or return;
+    my @protos = $app->param('id');
+    for my $pid (@protos) {
+	my $p = MT->model('thumbnail_prototype')->load($pid) or next;
+	$p->remove;
+    }
+    $app->add_return_arg( prototype_removed => 1 );
+    $app->call_return;
+}
+
 sub find_prototype_id {
     my ($ctx, $label) = @_;
     my $blog = $ctx->stash('blog');
@@ -22,7 +34,7 @@ sub find_prototype_id {
     return undef unless $ts;
     my $protos = MT->registry('template_sets')->{$ts}->{thumbnail_prototypes};
     foreach (keys %$protos) {
-	MT->log({ message => "Looking for $label in $_" });
+#	MT->log({ message => "Looking for $label in $_" });
 	return $_ if (&{$protos->{$_}->{label}} eq $label);
     }
 }
@@ -45,13 +57,13 @@ sub hdlr_cropped_asset {
 	label => $l,
     });
     if ($prototype) {
-	MT->log({ message => "prototype found: " . $prototype->id });
+#	MT->log({ message => "prototype found: " . $prototype->id });
 	$map = MT->model('thumbnail_prototype_map')->load({
 	    prototype_key => 'custom_' . $prototype->id,
 	    asset_id => $a->id,
         });
     } elsif (my $id = find_prototype_id($ctx, $l)) {
-	MT->log({ message => "prototype not found, consulted registry: " . $id });
+#	MT->log({ message => "prototype not found, consulted registry: " . $id });
 	$map = MT->model('thumbnail_prototype_map')->load({
 	    prototype_key => $blog->template_set . "___" . $id,
 	    asset_id => $a->id,
@@ -267,7 +279,7 @@ sub gen_thumbnails_start {
     $param->{box_height} = $bh;
     $param->{actual_width}  = $obj->image_width;
     $param->{actual_height} = $obj->image_height;
-    $param->{has_prototypes} = $#loop > 0;
+    $param->{has_prototypes} = $#loop >= 0;
 
     my $tmpl = $app->load_tmpl( 'start.tmpl', $param );
     my $ctx = $tmpl->context;
@@ -373,7 +385,7 @@ sub crop {
     if ($oldmap) {
 	my $oldasset = MT->model('asset')->load( $oldmap->cropped_asset_id );
 	if ($oldasset) {
-	    MT->log({ blog_id => $blog->id, message => "Removing: " . $oldasset->label });
+#	    MT->log({ blog_id => $blog->id, message => "Removing: " . $oldasset->label });
 	    $oldasset->remove()
 		or MT->log({ blog_id => $blog->id, message => "Error removing asset: " . $oldmap->cropped_asset_id });
 	}
@@ -434,7 +446,7 @@ sub crop {
     }
     my $error = '';
     if (!-d $cache_path) {
-	MT->log({ blog_id => $blog->id, message => "$cache_path is NOT a directory. Creating..." });
+#	MT->log({ blog_id => $blog->id, message => "$cache_path is NOT a directory. Creating..." });
         require MT::FileMgr;
         my $fmgr = $blog ? $blog->file_mgr : MT::FileMgr->new('Local');
         unless ($fmgr->mkpath($cache_path)) {
