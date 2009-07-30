@@ -3,7 +3,7 @@ name: 'Image Cropper'
 plugin_author: 'Endevver, LLC.'
 plugin_link: 'http://endevver.com/'
 description: "Allows users to define a set of thumbnail prototypes that others can easily generate using a drag-and-drop image cropping tool."
-version: 0.9.9
+version: 1.0
 schema_version: 7
 
 upgrade_functions:

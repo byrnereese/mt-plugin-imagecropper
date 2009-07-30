@@ -33,6 +33,9 @@ This utility facilitates that process.
 * Place annotations using the orientation and location you specify 
   on the generated thumbnail.
 
+* Hooks for designers to define thumbnail prototypes for their
+  themes and template sets so that their users don't have to.
+
 # Installation
 
 To install this plugin follow the instructions found here:
@@ -103,6 +106,37 @@ just that:
   arguments:
 
   * `label` - The label to filter by.
+
+# Designer Guide
+
+The Image Cropper plugin exposes a simple set of hooks that can be
+embedded in a theme's config.yaml file so that designers can specify 
+the exact dimensions of their fixed image prototypes. When prototypes
+are defined in this way, they will appear automatically on the 
+Manage > Thumbnail Prototypes screen for blogs using the corresponding
+theme. 
+
+To define thumbnail prototypes via config.yaml, consult this super 
+simple example:
+
+    generic_blog_theme:
+      label: 'Generic Blog Theme'
+      thumbnail_prototypes:
+        feature_thumb:
+          label: 'Featured Thumbnail'
+          max_width: 100
+          max_height: 90
+        feature_lrg:
+          label: 'Homepage Feature'
+          max_width: 350
+          max_height: 300
+      templates:
+        index:
+          etc...
+
+As you can see you can define one or more prototypes easily for a theme.
+Designers can specify the label for the prototype as well as its 
+dimensions.
 
 # About Endevver
 

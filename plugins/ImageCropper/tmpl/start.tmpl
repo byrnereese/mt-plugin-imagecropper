@@ -114,7 +114,7 @@
           inprocess[data.proto_key] = 0;
 	  var li = $('#prototypes li#proto-'+data.proto_key);
 	  li.removeClass('inprogress');
-          li.find('.proto_preview').html('<img src="'+ data.cropped_url + '" width="175" />' );
+          li.find('.proto_preview').html('<img src="'+ data.cropped_url + '?' + Math.random() +'" width="175" />' );
 	  li.removeClass('nothumb');
           li.find('.proto_size').html(data.cropped_size);
         },
