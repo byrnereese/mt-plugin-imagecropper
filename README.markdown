@@ -113,7 +113,7 @@ The Image Cropper plugin exposes a simple set of hooks that can be
 embedded in a theme's `config.yaml` file so that designers can specify 
 the exact dimensions of their fixed image prototypes. When prototypes
 are defined in this way, they will appear automatically on the 
-**Manage > Thumbnail Prototypes** screen for blogs using the corresponding
+**Preferences > Thumbnail Prototypes** screen for blogs using the corresponding
 theme. 
 
 To define thumbnail prototypes via `config.yaml`, consult this super 
