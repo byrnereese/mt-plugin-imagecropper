@@ -6,7 +6,7 @@ from any image asset managed by Movable Type.
 
 The plugin was specifically designed to addressed the case
 where publishers want the ability to produce different thumbnails
-designed specificaly for certain different locations on a web site. 
+designed specifically for certain different locations on a web site. 
 Furthermore, for each of these locations it is not sufficient
 simply to scale the asset in question; rather the publisher
 would rather crop the asset in a custom manner for each thumbnail
@@ -110,13 +110,13 @@ just that:
 # Designer Guide
 
 The Image Cropper plugin exposes a simple set of hooks that can be
-embedded in a theme's config.yaml file so that designers can specify 
+embedded in a theme's `config.yaml` file so that designers can specify 
 the exact dimensions of their fixed image prototypes. When prototypes
 are defined in this way, they will appear automatically on the 
-Manage > Thumbnail Prototypes screen for blogs using the corresponding
+**Manage > Thumbnail Prototypes** screen for blogs using the corresponding
 theme. 
 
-To define thumbnail prototypes via config.yaml, consult this super 
+To define thumbnail prototypes via `config.yaml`, consult this super 
 simple example:
 
     generic_blog_theme:
@@ -145,7 +145,7 @@ simplicity, sound design, ease of use and community. We specialize in
 Movable Type and offer numerous services and packages to help customers 
 make the most of this powerful publishing platform.
 
-    http://www.endevver.com/
+http://www.endevver.com/
 
 # Copyright
 
