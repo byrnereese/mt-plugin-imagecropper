@@ -153,14 +153,14 @@ sub load_ts_prototypes {
         foreach (keys %$ps) {
             my $p = $ps->{$_};
             push @protos, { 
-            id => $_,
-            type => 'template_set',
-            key => "$ts::$_",
-            template_set => $ts,
-            blog_id => $blog->id,
-            label => &{$p->{label}},
-            max_width => $p->{max_width},
-            max_height => $p->{max_height},
+                id           => $_,
+                type         => 'template_set',
+                key          => "$ts::$_",
+                template_set => $ts,
+                blog_id      => $blog->id,
+                label        => &{$p->{label}},
+                max_width    => $p->{max_width},
+                max_height   => $p->{max_height},
             }
         }
     }
@@ -222,75 +222,79 @@ sub list_prototypes {
 }
 
 sub gen_thumbnails_start {
-    my $app = shift;
-    my ($param) = @_;
-    $param ||= {};
+    my $app     = shift;
+    my ($param) = @_ || {};
     $app->validate_magic or return;
-    my $id = $app->{query}->param('id');
+
+    my $id  = $app->{query}->param('id');
     my $obj = MT->model('asset')->load($id) or
     return $app->error('Could not load asset.');
+
     my ($bw,$bh) = _box_dim($obj);
     my @protos;
-    my @custom = MT->model('thumbnail_prototype')->load({ blog_id => $app->blog->id });
+    my @custom = MT->model('thumbnail_prototype')->load({
+            blog_id => $app->blog->id
+    });
     foreach (@custom) {
-    push @protos, {
-        id => $_->id,
-        key => 'custom_' . $_->id,
-        label => $_->label,
-        max_width => $_->max_width,
-        max_height => $_->max_height,
-    };
+        push @protos, {
+            id         => $_->id,
+            key        => 'custom_' . $_->id,
+            label      => $_->label,
+            max_width  => $_->max_width,
+            max_height => $_->max_height,
+        };
     }
     my $tsprotos = load_ts_prototypes($app); 
     foreach (@$tsprotos) {
-    push @protos, {
-        id => $_->{template_set} . '___' . $_->{id},
-        key => $_->{template_set} . '___' . $_->{id},
-        label => $_->{label},
-        max_width => $_->{max_width},
-        max_height => $_->{max_height},
-    };
+        push @protos, {
+            id         => $_->{template_set} . '___' . $_->{id},
+            key        => $_->{template_set} . '___' . $_->{id},
+            label      => $_->{label},
+            max_width  => $_->{max_width},
+            max_height => $_->{max_height},
+        };
     }
     my @loop;
     foreach my $p (@protos) {
-    my $map = MT->model('thumbnail_prototype_map')->load({
-        asset_id => $obj->id,
-        prototype_key => $p->{key},
+        my $map = MT->model('thumbnail_prototype_map')->load({
+            asset_id      => $obj->id,
+            prototype_key => $p->{key},
         });
-    my ($url,$x,$y,$w,$h,$size);
-    if ($map) {
-        $x  = $map->cropped_x;
-        $y  = $map->cropped_y;
-        $w  = $map->cropped_w;
-        $h  = $map->cropped_h;
-        my $a = MT->model('asset')->load( $map->cropped_asset_id );
-        if ($a) {
-        $url = $a->url;
-        $size = file_size($a);
+        my ($url,$x,$y,$w,$h,$size);
+        if ($map) {
+            $x  = $map->cropped_x;
+            $y  = $map->cropped_y;
+            $w  = $map->cropped_w;
+            $h  = $map->cropped_h;
+            my $a = MT->model('asset')->load( $map->cropped_asset_id );
+            if ($a) {
+                $url  = $a->url;
+                $size = file_size($a);
+            }
         }
-    }
-    push @loop, {
-        proto_id      => $p->{id},
-        proto_key     => $p->{key},
-        proto_label   => $p->{label},
-        thumbnail_url => $url,
-        cropped_x     => $x,
-        cropped_y     => $y,
-        cropped_w     => $w,
-        cropped_h     => $h,
-        cropped_size  => $size,
-        max_width     => $p->{max_width},
-        max_height    => $p->{max_height},
-        is_tall       => $p->{max_height} > $p->{max_width},
-        smaller_vp    => ($p->{max_height} < 135 && $p->{max_width} < 175),
-        # 175x135
-    };
+        push @loop, {
+            proto_id      => $p->{id},
+            proto_key     => $p->{key},
+            proto_label   => $p->{label},
+            thumbnail_url => $url,
+            cropped_x     => $x,
+            cropped_y     => $y,
+            cropped_w     => $w,
+            cropped_h     => $h,
+            cropped_size  => $size,
+            max_width     => $p->{max_width},
+            max_height    => $p->{max_height},
+            is_tall       => $p->{max_height} > $p->{max_width},
+            smaller_vp    => (   $p->{max_height} < 135 
+                              && $p->{max_width} < 175  ),
+            # 175x135
+        };
     }
     $param->{prototype_loop} = \@loop if @loop;
-    $param->{box_width}  = $bw;
-    $param->{box_height} = $bh;
-    $param->{actual_width}  = $obj->image_width;
-    $param->{actual_height} = $obj->image_height;
+    $param->{box_width}      = $bw;
+    $param->{box_height}     = $bh;
+    $param->{actual_width}   = $obj->image_width;
+    $param->{actual_height}  = $obj->image_height;
     $param->{has_prototypes} = $#loop >= 0;
 
     my $tmpl = $app->load_tmpl( 'start.tmpl', $param );
@@ -300,40 +304,38 @@ sub gen_thumbnails_start {
 }
 
 sub delete_crop {
-    my $app = shift;
-
+    my $app  = shift;
     my $q    = $app->param;
     my $blog = $app->blog;
-
-    my $id     = $q->param('id');
-    my $key    = $q->param('prototype');
+    my $id   = $q->param('id');
+    my $key  = $q->param('prototype');
 
     my $oldmap = MT->model('thumbnail_prototype_map')->load({
-    asset_id => $id,
-    prototype_key => $key,
+        asset_id => $id,
+        prototype_key => $key,
     });
     if ($oldmap) {
-    my $oldasset = MT->model('asset')->load( $oldmap->cropped_asset_id );
-    $oldasset->remove()
-        or MT->log({ blog_id => $blog->id, message => "Error removing asset: " . $oldmap->cropped_asset_id });
-    $oldmap->remove()
-        or MT->log({ blog_id => $blog->id, message => "Error removing prototype map." });
+        my $oldasset
+            = MT->model('asset')->load( $oldmap->cropped_asset_id );
+        $oldasset->remove()
+            or MT->log({    blog_id => $blog->id,
+                            message => "Error removing asset: "
+                                        . $oldmap->cropped_asset_id });
+        $oldmap->remove()
+            or MT->log({    blog_id => $blog->id,
+                            message => "Error removing prototype map." });
     }
     my $result = {
-    proto_key => $key,
-    success => 1,
+        proto_key => $key,
+        success => 1,
     };
     return _send_json_response($app, $result);
 }
 
 sub crop {
-    my $app = shift;
-
-    my $q = $app->param;
+    my $app  = shift;
+    my $q    = $app->param;
     my $blog = $app->blog;
-
-    my $fmgr;
-    my $result;
 
     my $X         = $q->param('x');
     my $Y         = $q->param('y');
@@ -349,34 +351,37 @@ sub crop {
     my $id        = $q->param('asset');
     my $key       = $q->param('key');
 
-
     my $asset     = MT->model('asset')->load( $id );
     my $prototype;
     if ($key =~ /custom_(\d+)/) {
-    $prototype = MT->model('thumbnail_prototype')->load( $1 );
-    } else {
-    $prototype = MT->model('thumbnail_prototype')->new;
-    my $p = load_ts_prototype($app,$key);
-    foreach (qw( max_width max_height label )) {
-        $prototype->$_($p->{$_});
+        $prototype = MT->model('thumbnail_prototype')->load( $1 );
     }
+    else {
+        $prototype = MT->model('thumbnail_prototype')->new;
+        my $p      = load_ts_prototype($app,$key);
+        foreach (qw( max_width max_height label )) {
+            $prototype->$_($p->{$_});
+        }
     }
-    my $cropped = crop_filename( $asset, 
-                 Prototype => $key,
-                 Type => $type,
+    my $cropped = crop_filename(
+        $asset, 
+        Prototype => $key,
+        Type      => $type,
     );
-    my $cache_path; my $cache_url;
-    my $archivepath = $blog->archive_path;
-    my $archiveurl  = $blog->archive_url;
-    $cache_path = $cache_url = $asset->_make_cache_path( undef, 1 );
-    $cache_path =~ s!%a!$archivepath!;
-    $cache_url =~ s!%a!$archiveurl!;
+
+    my ($cache_path, $cache_url);
+    my $archivepath  = $blog->archive_path;
+    my $archiveurl   = $blog->archive_url;
+    $cache_path      = $cache_url = $asset->_make_cache_path( undef, 1 );
+    $cache_path      =~ s!%a!$archivepath!;
+    $cache_url       =~ s!%a!$archiveurl!;
     my $cropped_path = File::Spec->catfile( $cache_path, $cropped );
     #MT->log({ blog_id => $blog->id, message => "Cropped filename: $cropped_path" });
-    my $cropped_url = $cache_url . '/' . $cropped;
+    my $cropped_url  = $cache_url . '/' . $cropped;
     #MT->log({ blog_id => $blog->id, message => "Cropped URL: $cropped_url" });
     my ( $base, $path, $ext ) =
-    File::Basename::fileparse( $cropped, qr/[A-Za-z0-9]+$/ );
+        File::Basename::fileparse( $cropped, qr/[A-Za-z0-9]+$/ );
+
     my $asset_cropped = new MT::Asset::Image;
     $asset_cropped->blog_id($blog->id);
     $asset_cropped->url($cropped_url);
@@ -391,18 +396,22 @@ sub crop {
     $asset_cropped->save;
 
     my $oldmap = MT->model('thumbnail_prototype_map')->load({
-    asset_id => $asset->id,
-    prototype_key => $key,
+        asset_id => $asset->id,
+        prototype_key => $key,
     });
     if ($oldmap) {
-    my $oldasset = MT->model('asset')->load( $oldmap->cropped_asset_id );
-    if ($oldasset) {
-#       MT->log({ blog_id => $blog->id, message => "Removing: " . $oldasset->label });
-        $oldasset->remove()
-        or MT->log({ blog_id => $blog->id, message => "Error removing asset: " . $oldmap->cropped_asset_id });
-    }
-    $oldmap->remove()
-        or MT->log({ blog_id => $blog->id, message => "Error removing prototype map." });
+        my $oldasset
+            = MT->model('asset')->load( $oldmap->cropped_asset_id );
+        if ($oldasset) {
+            # MT->log({ blog_id => $blog->id, message => "Removing: " . $oldasset->label });
+            $oldasset->remove()
+                or MT->log({ blog_id => $blog->id,
+                             message => "Error removing asset: "
+                                        . $oldmap->cropped_asset_id });
+        }
+        $oldmap->remove()
+            or MT->log({    blog_id => $blog->id,
+                            message => "Error removing prototype map." });
     }
 
     my $map = MT->model('thumbnail_prototype_map')->new;
@@ -417,73 +426,84 @@ sub crop {
     
     require MT::Image;
     my $img = MT::Image->new( Filename => $asset->file_path )
-    or MT->log({ blog_id => $blog->id, message => "Error loading image: " . MT::Image->errstr });
-    my $data = crop_image($img, 
-              Width  => $width,
-              Height => $height,
-              X      => $X,
-              Y      => $Y,
-              Type   => $type,
-              quality => $quality,
+        or MT->log({ blog_id => $blog->id,
+                     message => "Error loading image: "
+                                . MT::Image->errstr });
+    my $data = crop_image(
+        $img, 
+        Width   => $width,
+        Height  => $height,
+        X       => $X,
+        Y       => $Y,
+        Type    => $type,
+        quality => $quality,
     );
     $data = $img->scale( 
-    Width  => $prototype->max_width,
-    Height => $prototype->max_height,
+        Width  => $prototype->max_width,
+        Height => $prototype->max_height,
     );
     if ($annotate && $text) {
-    my $plugin = MT->component("ImageCropper");
-    my $scope = "blog:" . $blog->id;
-    my $fam = $plugin->get_config_value('annotate_fontfam',$scope);
-    $data = annotate( $img,
-              text     => $text,
-              family   => $fam,
-              size     => $text_size,
-              location => $text_loc,
-              rotation => $text_rot,
+        my $plugin = MT->component("ImageCropper");
+        my $scope  = "blog:" . $blog->id;
+        my $fam    = $plugin->get_config_value('annotate_fontfam',$scope);
+        $data      = annotate(
+            $img,
+            text     => $text,
+            family   => $fam,
+            size     => $text_size,
+            location => $text_loc,
+            rotation => $text_rot,
         );
     }
     require MT::FileMgr;
-    $fmgr ||= $blog ? $blog->file_mgr : MT::FileMgr->new('Local');
+    my $fmgr = $blog ? $blog->file_mgr : MT::FileMgr->new('Local');
     unless ($fmgr) {
-    MT->log({ blog_id => $blog->id, message => "Unable to initialize File Manager" });
-    return undef;
+        MT->log({   blog_id => $blog->id,
+                    message => "Unable to initialize File Manager"
+                });
+        return undef;
     }
     if ($cache_path =~ /^%r/) {
-    my $p = $blog->site_path;
-    $cache_path =~ s/%r/$p/;
+        my $p = $blog->site_path;
+        $cache_path =~ s/%r/$p/;
     }
     unless ($fmgr->can_write($cache_path)) {
-    MT->log({ blog_id => $blog->id, message => "Can't write to: $cache_path" });
-    return undef;
+        MT->log({   blog_id => $blog->id,
+                    message => "Can't write to: $cache_path"
+        });
+        return undef;
     }
     my $error = '';
     if (!-d $cache_path) {
-#   MT->log({ blog_id => $blog->id, message => "$cache_path is NOT a directory. Creating..." });
+        # MT->log({ blog_id => $blog->id, message => "$cache_path is NOT a directory. Creating..." });
         require MT::FileMgr;
         my $fmgr = $blog ? $blog->file_mgr : MT::FileMgr->new('Local');
         unless ($fmgr->mkpath($cache_path)) {
-        MT->log({ blog_id => $blog->id, message => "Can't mkpath: $cache_path" });
-        return undef;
-    }
+            MT->log({   blog_id => $blog->id,
+                        message => "Can't mkpath: $cache_path" });
+            return undef;
+        }
     }
 
-    $fmgr->put_data( $data, 
-             File::Spec->catfile( $cache_path, $cropped ), 
-             'upload' )
-    or $error = MT->translate( "Error creating cropped file: [_1]", $fmgr->errstr );
+    $fmgr->put_data(
+        $data, 
+        File::Spec->catfile( $cache_path, $cropped ), 'upload'
+    )
+        or $error = MT->translate( "Error creating cropped file: [_1]",
+                                   $fmgr->errstr );
 
     if ($cropped_url =~ /^%r/) {
-    my $p = $blog->site_url;
-    $p = "$p/" if $p !~ /\/$/;
-    $cropped_url =~ s/%r\/?/$p/;
+        my $p        = $blog->site_url;
+        $p           = "$p/" if $p !~ /\/$/;
+        $cropped_url =~ s/%r\/?/$p/;
     }
-    $result = {
-    error        => $error,
+    my $result = {
+        error        => $error,
         proto_key    => $key,
-    cropped      => $cropped,
-    cropped_path => $cropped_path,
-    cropped_url  => $cropped_url,
-    cropped_size => file_size($asset_cropped),
+        cropped      => $cropped,
+        cropped_path => $cropped_path,
+        cropped_url  => $cropped_url,
+        cropped_size => file_size($asset_cropped),
     };
 
     return _send_json_response($app, $result);
@@ -510,8 +530,8 @@ sub _box_dim {
         $box_w = 900;
         $box_h = int((900 * $obj->image_height) / $obj->image_width);
     } else {
-    $box_w = $obj->image_width;
-    $box_h = $obj->image_height;
+        $box_w = $obj->image_width;
+        $box_h = $obj->image_height;
     }
     return ($box_w,$box_h);
 }
