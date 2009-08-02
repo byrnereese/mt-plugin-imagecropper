@@ -13,14 +13,14 @@ __PACKAGE__->install_properties({
         'cropped_asset_id' => 'integer not null',
         'prototype_id'     => 'integer', # obsolete
         'prototype_key'    => 'string(100) not null',
-    'cropped_x'        => 'integer not null',
-    'cropped_y'        => 'integer not null',
-    'cropped_w'        => 'integer not null',
-    'cropped_h'        => 'integer not null',
+        'cropped_x'        => 'integer not null',
+        'cropped_y'        => 'integer not null',
+        'cropped_w'        => 'integer not null',
+        'cropped_h'        => 'integer not null',
     },
     defaults => {
-    'cropped_x' => 0,
-    'cropped_y' => 0,
+        'cropped_x' => 0,
+        'cropped_y' => 0,
     },
     indexes => {
         id => 1,

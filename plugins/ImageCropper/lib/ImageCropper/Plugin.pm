@@ -6,7 +6,8 @@ package ImageCropper::Plugin;
 use strict;
 
 use Carp qw( croak );
-use MT::Util qw( relative_date offset_time offset_time_list epoch2ts ts2epoch format_ts );
+use MT::Util qw( relative_date    offset_time format_ts
+                 offset_time_list epoch2ts    ts2epoch  );
 use ImageCropper::Util qw( crop_filename crop_image annotate file_size );
 
 sub hdlr_default_text {
@@ -20,8 +21,8 @@ sub del_prototype {
     $app->validate_magic or return;
     my @protos = $app->param('id');
     for my $pid (@protos) {
-    my $p = MT->model('thumbnail_prototype')->load($pid) or next;
-    $p->remove;
+        my $p = MT->model('thumbnail_prototype')->load($pid) or next;
+        $p->remove;
     }
     $app->add_return_arg( prototype_removed => 1 );
     $app->call_return;
@@ -32,10 +33,11 @@ sub find_prototype_id {
     my $blog = $ctx->stash('blog');
     my $ts = $blog->template_set;
     return undef unless $ts;
-    my $protos = MT->registry('template_sets')->{$ts}->{thumbnail_prototypes};
+    my $protos
+        = MT->registry('template_sets')->{$ts}->{thumbnail_prototypes};
     foreach (keys %$protos) {
-#   MT->log({ message => "Looking for $label in $_" });
-    return $_ if (&{$protos->{$_}->{label}} eq $label);
+        # MT->log({ message => "Looking for $label in $_" });
+        return $_ if (&{$protos->{$_}->{label}} eq $label);
     }
 }
 
@@ -53,29 +55,31 @@ sub hdlr_cropped_asset {
 
     my $map;
     my $prototype = MT->model('thumbnail_prototype')->load({
-    blog_id => $blog_id,
-    label => $l,
+        blog_id => $blog_id,
+        label => $l,
     });
     if ($prototype) {
-#   MT->log({ message => "prototype found: " . $prototype->id });
-    $map = MT->model('thumbnail_prototype_map')->load({
-        prototype_key => 'custom_' . $prototype->id,
-        asset_id => $a->id,
-        });
-    } elsif (my $id = find_prototype_id($ctx, $l)) {
-#   MT->log({ message => "prototype not found, consulted registry: " . $id });
-    $map = MT->model('thumbnail_prototype_map')->load({
-        prototype_key => $blog->template_set . "___" . $id,
-        asset_id => $a->id,
+        # MT->log({ message => "prototype found: " . $prototype->id });
+        $map = MT->model('thumbnail_prototype_map')->load({
+            prototype_key => 'custom_' . $prototype->id,
+            asset_id => $a->id,
         });
     }
+    elsif (my $id = find_prototype_id($ctx, $l)) {
+        # MT->log({ message => "prototype not found, consulted registry: " . $id });
+        $map = MT->model('thumbnail_prototype_map')->load({
+            prototype_key => $blog->template_set . "___" . $id,
+            asset_id => $a->id,
+        });
+    }
+
     if ($map) {
-    my $cropped = MT->model('asset')->load( $map->cropped_asset_id );
-    if ($cropped) {
-        local $ctx->{__stash}{'asset'} = $cropped;
-        defined($out = $ctx->slurp($args,$cond)) or return;
-        return $out;
-    }
+        my $cropped = MT->model('asset')->load( $map->cropped_asset_id );
+        if ($cropped) {
+            local $ctx->{__stash}{'asset'} = $cropped;
+            defined($out = $ctx->slurp($args,$cond)) or return;
+            return $out;
+        }
     }
     return _hdlr_pass_tokens_else(@_);
 }
@@ -92,24 +96,27 @@ sub save_prototype {
     my $app = shift;
     my $param;
     my $q = $app->{query};
-    my $obj = MT->model('thumbnail_prototype')->load( $q->param('id') );
-    unless ($obj) { 
-        $obj = MT->model('thumbnail_prototype')->new;
-    }
-    foreach ( qw(blog_id max_width max_height label default_tags) ) {
-    $obj->$_($q->param($_));
-    }
+    my $obj = MT->model('thumbnail_prototype')->load( $q->param('id') )
+            || MT->model('thumbnail_prototype')->new;
+
+    $obj->$_($q->param($_))
+        foreach ( qw(blog_id max_width max_height label default_tags) );
+
     $obj->save or return $app->error( $obj->errstr );
 
     my $cgi = $app->{cfg}->CGIPath . $app->{cfg}->AdminScript;
-    $app->redirect("$cgi?__mode=list_prototypes&blog_id=".$q->param('blog_id')."&prototype_saved=1");
+    $app->redirect(
+          "$cgi?__mode=list_prototypes&blog_id="
+        . $q->param('blog_id')
+        . "&prototype_saved=1"
+    );
 }
 
 sub edit_prototype {
-    my $app = shift;
+    my $app     = shift;
     my ($param) = @_;
-    my $q = $app->{query};
-    my $blog = MT::Blog->load($q->param('blog_id'));
+    my $q       = $app->{query};
+    my $blog    = MT::Blog->load($q->param('blog_id'));
 
     $param ||= {};
 
@@ -129,65 +136,70 @@ sub edit_prototype {
 }
 
 sub load_ts_prototype {
-    my $app = shift;
-    my ($key) = @_;
+    my $app      = shift;
+    my ($key)    = @_;
     my ($ts,$id) = split('___',$key);
     return $app->registry('template_sets')->{$ts}->{thumbnail_prototypes}->{$id};
 }
 
 sub load_ts_prototypes {
-    my $app = shift;
+    my $app  = shift;
     my $blog = $app->blog;
 
     my @protos;
     if ($blog->template_set) {
-    my $ts = $blog->template_set;
-    my $ps = $app->registry('template_sets')->{$ts}->{thumbnail_prototypes};
-    foreach (keys %$ps) {
-        my $p = $ps->{$_};
-        push @protos, { 
-        id => $_,
-        type => 'template_set',
-        key => "$ts::$_",
-        template_set => $ts,
-        blog_id => $blog->id,
-        label => &{$p->{label}},
-        max_width => $p->{max_width},
-        max_height => $p->{max_height},
+        my $ts = $blog->template_set;
+        my $ps = $app->registry('template_sets')->{$ts}->{thumbnail_prototypes};
+        foreach (keys %$ps) {
+            my $p = $ps->{$_};
+            push @protos, { 
+            id => $_,
+            type => 'template_set',
+            key => "$ts::$_",
+            template_set => $ts,
+            blog_id => $blog->id,
+            label => &{$p->{label}},
+            max_width => $p->{max_width},
+            max_height => $p->{max_height},
+            }
         }
-    }
     }
     return \@protos;
 }
 
 sub list_prototypes {
-    my $app = shift;
-    my ($params) = @_;
-    $params ||= {};
-    my $q = $app->{query};
-    my $blog = $app->blog;
+    my $app      = shift;
+    my ($params) = @_ || {};
+    my $q        = $app->{query};
+    my $blog     = $app->blog;
 
     if ($blog && $app->blog->template_set) {
-    my $loop = load_ts_prototypes($app); 
-    $params->{prototype_loop}  = $loop;
-    $params->{template_set_name} = $app->registry('template_sets')->{$blog->template_set}->{label};
+        my $loop = load_ts_prototypes($app); 
+        $params->{prototype_loop}  = $loop;
+        $params->{template_set_name} = $app->registry('template_sets')->{$blog->template_set}->{label};
     }
     $params->{prototype_saved} = $q->param('prototype_saved');
 
     my $code = sub {
         my ($obj, $row) = @_;
 
-    $row->{id}         = $obj->id;
-    $row->{blog_id}    = $obj->blog_id;
-    $row->{label}      = $obj->label;
-    $row->{max_width}  = $obj->max_width;
-    $row->{max_height} = $obj->max_height;
+        $row->{id}         = $obj->id;
+        $row->{blog_id}    = $obj->blog_id;
+        $row->{label}      = $obj->label;
+        $row->{max_width}  = $obj->max_width;
+        $row->{max_height} = $obj->max_height;
 
         my $ts = $row->{created_on};
-    my $datetime_format = MT::App::CMS::LISTING_DATETIME_FORMAT();
-    my $time_formatted = format_ts( $datetime_format, $ts, $app->blog ? $app->blog : undef, 
-                    $app->user ? $app->user->preferred_language : undef );
-        $row->{created_on_relative} = relative_date($ts, time, $app->blog ? $app->blog : undef);
+        my $datetime_format = MT::App::CMS::LISTING_DATETIME_FORMAT();
+        my $time_formatted
+            = format_ts( $datetime_format,
+                         $ts,
+                         $app->blog || undef,
+                         ( $app->user ? $app->user->preferred_language
+                                      : undef)
+        );
+        $row->{created_on_relative}
+            = relative_date($ts, time, $app->blog ? $app->blog : undef);
         $row->{created_on_formatted} = $time_formatted;
     };
 
