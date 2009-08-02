@@ -8,12 +8,12 @@ sub file_size {
     my $a = shift;
     my $sizef = '? KB';
     if ( $a->file_path && ( -f $a->file_path ) ) {
-	my @stat = stat( $a->file_path );
-	my $size = $stat[7];
-	if ( $size < 1024 ) { $sizef = sprintf( "%d Bytes", $size );
-	} elsif ( $size < 1024000 ) { $sizef = sprintf( "%.1f KB", $size / 1024 );
-	} else { $sizef = sprintf( "%.1f MB", $size / 1024000 );
-	}
+    my @stat = stat( $a->file_path );
+    my $size = $stat[7];
+    if ( $size < 1024 ) { $sizef = sprintf( "%d Bytes", $size );
+    } elsif ( $size < 1024000 ) { $sizef = sprintf( "%.1f KB", $size / 1024 );
+    } else { $sizef = sprintf( "%.1f MB", $size / 1024000 );
+    }
     }
     return $sizef;
 }
@@ -24,19 +24,19 @@ sub crop_image {
     my ($w, $h, $x, $y, $type, $qual) = @param{qw( Width Height X Y Type quality)};
     my $magick = $image->{magick};
     my $err = $magick->Crop(
-	'width' => $w, 
-	'height' => $h, 
-	'x' => $x, 
-	'y' => $y,
+    'width' => $w, 
+    'height' => $h, 
+    'x' => $x, 
+    'y' => $y,
     );
     if ($qual) {
-	MT->log({ message => "Quality of image: $qual" });
-	$magick->Set( quality => $qual );
+    MT->log({ message => "Quality of image: $qual" });
+    $magick->Set( quality => $qual );
     }
     return $image->error(
-	MT->translate(
-	    "Error cropping a [_1]x[_2] image at [_3],[_4] failed: [_5]", 
-	    $w, $h, $x, $y, $err)) if $err;
+    MT->translate(
+        "Error cropping a [_1]x[_2] image at [_3],[_4] failed: [_5]", 
+        $w, $h, $x, $y, $err)) if $err;
 
     ## Remove page offsets from the original image, per this thread: 
     ## http://studio.imagemagick.org/pipermail/magick-users/2003-September/010803.html
@@ -53,25 +53,25 @@ sub annotate {
     my $magick = $image->{magick};
     my ($rot, $x) = (0, 0);
     if ($ori eq 'Vertical') {
-	if ($loc eq 'NorthWest') {
-	    $rot = 90; $x = 12;
-	} elsif ($loc eq 'NorthEast') {
-	    $rot = 270; $x = 12;
-	} elsif ($loc eq 'SouthWest') {
-	    $rot = 270; $x = 12;
-	} elsif ($loc eq 'SouthEast') {
-	    $rot = 90; $x = 12;
-	} 
+    if ($loc eq 'NorthWest') {
+        $rot = 90; $x = 12;
+    } elsif ($loc eq 'NorthEast') {
+        $rot = 270; $x = 12;
+    } elsif ($loc eq 'SouthWest') {
+        $rot = 270; $x = 12;
+    } elsif ($loc eq 'SouthEast') {
+        $rot = 90; $x = 12;
+    } 
     }
     MT->log({ message => "Annotating image with text: '$txt' ($loc, $rot degrees, $family at $size pt.)" });
     my $err = $magick->Annotate(
         'pen'       => 'white',
-	'font'    => $family,
-	'pointsize' => $size, 
-	'text'      => $txt, 
+    'font'    => $family,
+    'pointsize' => $size, 
+    'text'      => $txt, 
         'gravity'   => $loc,
-	'rotate'    => $rot,
-	'x'         => $x,
+    'rotate'    => $rot,
+    'x'         => $x,
     );
     MT->log("Error annotating image with $txt: $err") if $err;
 

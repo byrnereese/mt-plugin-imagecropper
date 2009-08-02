@@ -104,28 +104,28 @@ div.items div.active {
 }
 
 div.scrollable {
-	float:left;
-	margin-bottom: 20px;
+    float:left;
+    margin-bottom: 20px;
 }
 
 a.prev, a.next, a.prevPage, a.nextPage {
-	display:block;
-	width:18px;
-	height:18px;
-	background:url(../js/left.png) no-repeat;
-	float:left;
-	cursor:pointer;
+    display:block;
+    width:18px;
+    height:18px;
+    background:url(../js/left.png) no-repeat;
+    float:left;
+    cursor:pointer;
 }
 
 a.prev:hover, a.next:hover, a.prevPage:hover, a.nextPage:hover {
-	background-position:0px -18px;		
+    background-position:0px -18px;      
 }
 
 a.disabled {
-	visibility:hidden !important;		
+    visibility:hidden !important;       
 }
 
 a.next, a.nextPage {
-	background-image:url(../js/right.png);
+    background-image:url(../js/right.png);
         clear:right;
 }

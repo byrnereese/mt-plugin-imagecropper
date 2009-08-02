@@ -33,11 +33,11 @@
       );
       $('#prototypes li').click( function() {
         var id = $(this).attr('id').substr( 'proto-'.length )
-	var p = protos[id];
-	$('#prototypes li#proto-'+selected).removeClass('selected');
-	$('#prototypes li#proto-'+id).addClass('selected');
+    var p = protos[id];
+    $('#prototypes li#proto-'+selected).removeClass('selected');
+    $('#prototypes li#proto-'+id).addClass('selected');
         selected = id;
-	initCrop( p.max_width, p.max_height, p.x, p.y, p.w, p.h );
+    initCrop( p.max_width, p.max_height, p.x, p.y, p.w, p.h );
       });
       $('#prototypes li .proto_action a').click( function(e) {
         e.stopPropagation();
@@ -112,10 +112,10 @@
         },
         function(data){
           inprocess[data.proto_key] = 0;
-	  var li = $('#prototypes li#proto-'+data.proto_key);
-	  li.removeClass('inprogress');
+      var li = $('#prototypes li#proto-'+data.proto_key);
+      li.removeClass('inprogress');
           li.find('.proto_preview').html('<img src="'+ data.cropped_url + '?' + Math.random() +'" width="175" />' );
-	  li.removeClass('nothumb');
+      li.removeClass('nothumb');
           li.find('.proto_size').html(data.cropped_size);
         },
         "json"
