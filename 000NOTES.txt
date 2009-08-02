@@ -1,0 +1,3 @@
+    * How do you get from the Generate thumbnails screen BACK to the edit asset screen?
+    * On the generate thumbnails screen, what is the little arrow icon for on the right.  It doesn't do anything for me.
+    * There's no "save state" or obvious UI response after you click on the crop button except for the thumbnail filling in which may be off screen if one scrolls down to hit crop.
