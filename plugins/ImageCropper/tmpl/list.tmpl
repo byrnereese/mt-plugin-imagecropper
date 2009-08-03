@@ -1,10 +1,6 @@
 <mt:setvar name="page_title" value="<__trans phrase="Thumbnail Prototypes">">
 <mt:setvar name="list_thumbnailprototypes" value="1">
 
-<mt:setvarblock name="html_body_footer">
-    <mt:include name="include/display_options.tmpl">
-</mt:setvarblock>
-
 <mt:setvarblock name="related_content">
     <mtapp:PageActions />
 </mt:setvarblock>
@@ -12,24 +8,21 @@
 <mt:setvarblock name="html_head" append="1">
     <script type="text/javascript">
     <!--
-    var tableSelect;
-    function init()
-    {
-        // setup
-        tableSelect = new TC.TableSelect( "prototypes-listing-table" );
-        tableSelect.rowSelect = true;
-    }
+        var tableSelect;
+        function init() {
+            // setup
+            tableSelect = new TC.TableSelect( "prototypes-listing-table" );
+            tableSelect.rowSelect = true;
+        }
 
-    TC.attachLoadEvent( init );
+        TC.attachLoadEvent( init );
     //-->
     </script> 
     <style type="text/css">
-    <!--
         #prototypes-listing-table .date { white-space: nowrap; }
         #main-content { padding-top: 5px; }
         .content-nav #main-content .msg { margin-left: 0px; }
         .listing-header { padding: 5px 0 10px 10px; }
-    // -->
     </style>
 </mt:setvarblock>
 
@@ -86,7 +79,7 @@
     </mt:if>
         <tr class="<mt:if name="__odd__">odd<mt:else>even</mt:if>">
             <td class="cb"><input type="checkbox" name="id" value="<mt:var name="id">" class="select" /></td>
-            <td><a href="javascript:void(0)" onclick="openDialog(null,'edit_prototype','blog_id=<mt:var name="blog_id">&id=<mt:var name="id">');return false;" class=""><mt:var name="label" escape="html"></a></td>
+            <td><a href="javascript:void(0)" onclick="openDialog(null,'edit_prototype','blog_id=<mt:var name="blog_id">&amp;id=<mt:var name="id">');return false;" class=""><mt:var name="label" escape="html"></a></td>
             <td><mt:var name="max_width" escape="html"></td>
             <td><mt:var name="max_height" escape="html"></td>
             <td>
