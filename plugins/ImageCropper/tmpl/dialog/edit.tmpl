@@ -1,6 +1,13 @@
 <mt:setvarblock name="page_title"><__trans phrase="Edit Thumbnail Prototype"><mt:else><__trans phrase="Create Thumbnail Prototype"></mt:if></mt:setvarblock>
 <mt:setvarblock name="html_head" append="1">
 <link rel="stylesheet" href="<mt:var name="static_uri">plugins/ImageCropper/css/app.css" type="text/css" />
+<script type="text/javascript" charset="utf-8">
+    function init() {
+        var label = getByID("label");
+        label.focus();
+    }
+    TC.attachLoadEvent( init );
+</script>
 </mt:setvarblock>
 <mt:include name="dialog/header.tmpl">
 
@@ -19,7 +26,7 @@
 </mtapp:setting>
 
 <mtapp:setting
-    id="pattern"
+    id="max_width"
     label_class="top-label"
     label="<__trans phrase="Max Width">"
     hint="Enter in the max width of the thumbnail."
@@ -28,7 +35,7 @@
 </mtapp:setting>
 
 <mtapp:setting
-    id="pattern"
+    id="max_height"
     label_class="top-label"
     label="<__trans phrase="Max Height">"
     hint="Enter in the max height of the thumbnail."
