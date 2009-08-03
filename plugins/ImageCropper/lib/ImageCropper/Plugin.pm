@@ -84,10 +84,11 @@ sub complete_upload_wrapper {
     if ( $app->{redirect} =~ m{__mode=list_assets}) {
         return $app->redirect(
             $app->uri(
-                'mode' => 'manage_thumbnails',
+                'mode' => 'view',
                 'args' => { 'from'        => 'view',
-                            'blog_id'     => $app->param('blog_id'),
+			    '_type'       => 'asset',
                             'id'          => $asset_id,
+                            'blog_id'     => $app->param('blog_id'),
                             'return_args' =>  $app->return_args,
                             'magic_token' => $app->param('magic_token') }
             )
