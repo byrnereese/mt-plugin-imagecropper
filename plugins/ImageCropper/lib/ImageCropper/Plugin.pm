@@ -4,11 +4,97 @@
 package ImageCropper::Plugin;
 
 use strict;
+use warnings;
 
-use Carp qw( croak );
+use Carp qw( croak longmess confess );
 use MT::Util qw( relative_date    offset_time format_ts
                  offset_time_list epoch2ts    ts2epoch  );
 use ImageCropper::Util qw( crop_filename crop_image annotate file_size );
+use Sub::Install;
+
+# use MT::Log::Log4perl qw( l4mtdump );
+# use Log::Log4perl::Resurrector;
+# my $logger ||= MT::Log::Log4perl->new();
+
+my %target;
+
+# METHOD: init_app
+#
+# A callback handler which hooks into the MT::App::CMS::init_app callback
+# in order to override and wrap MT::CMS::Asset::complete_upload
+sub init_app {
+    my ($plugin, $app) = @_;
+    # $logger ||= MT::Log::Log4perl->new(); $logger->trace();
+
+    # This plugin operates by overriding the method
+    # (MT::CMS::Asset::complete_upload)
+    %target = ( module =>'MT::CMS::Asset',
+                method => 'complete_upload',
+                subref => undef
+    );
+
+    # Do nothing unless the current app is our target app
+    return unless ref $app and $app->isa( 'MT::App::CMS' );
+
+    # Make sure that our app module has the method we're looking for
+    # and grab a reference to it if so.
+    eval "require $target{module};"
+        or die "Could not require $target{module}";
+    $target{subref} = $target{module}->can( $target{method} );
+
+    # Throw an error and quit if we could not find our target method
+    unless ( $target{subref} ) {
+        my $err = sprintf(
+            '%s plugin initialization error: %s method not found. '
+            .'This may have been caused by changes introduced by a '
+            .'Movable Type upgrade.',
+            __PACKAGE__, join( '::', $target{module}, $target{method} )
+        );
+        $app->log({
+            class    => 'system',
+            category => 'plugin',
+            level    => MT::Log::ERROR(),
+            message  => $err,
+        });
+        return undef; # We simply can't go on....
+    }
+
+    # $logger->debug( 'Overriding method: '
+    #               . join('::', $target{module}, $target{method}));
+
+    # Override the target method with our own version
+    require Sub::Install;
+    Sub::Install::reinstall_sub({
+        code => \&complete_upload_wrapper,
+        into => $target{module},
+        as   => $target{method},
+    });
+}
+
+sub complete_upload_wrapper {
+    my $app       = shift;
+    my $asset_id  = $app->param('id');
+    # $logger     ||= MT::Log->get_logger();  $logger->trace();
+
+    # Call the original method to perform the work
+    $target{subref}->($app, @_);
+
+    # Alter the redirect location from list_assets 
+    # to manage_thumbnails for the uploaded asset
+    if ( $app->{redirect} =~ m{__mode=list_assets}) {
+        return $app->redirect(
+            $app->uri(
+                'mode' => 'manage_thumbnails',
+                'args' => { 'from'        => 'view',
+                            'blog_id'     => $app->param('blog_id'),
+                            'id'          => $asset_id,
+                            'return_args' =>  $app->return_args,
+                            'magic_token' => $app->param('magic_token') }
+            )
+        );
+    }
+    return;
+}
 
 sub hdlr_default_text {
     my($ctx, $args, $cond) = @_;
@@ -51,7 +137,6 @@ sub hdlr_cropped_asset {
 
     my $out;
     return $ctx->_no_asset_error() unless $a;
-    my $cropped;
 
     my $map;
     my $prototype = MT->model('thumbnail_prototype')->load({
@@ -127,11 +212,12 @@ sub edit_prototype {
         $obj = MT->model('thumbnail_prototype')->new();
     }
 
-    $param->{blog_id}      = $blog->id;
-    $param->{id}           = $obj->id;
-    $param->{label}        = $obj->label;
-    $param->{max_width}    = $obj->max_width;
-    $param->{max_height}   = $obj->max_height;
+    $param->{blog_id}    = $blog->id;
+    $param->{id}         = $obj->id;
+    $param->{label}      = $obj->label;
+    $param->{max_width}  = $obj->max_width;
+    $param->{max_height} = $obj->max_height;
+    $param->{screen_id}  = 'edit-prototype';
     return $app->load_tmpl( 'dialog/edit.tmpl', $param );
 }
 
@@ -179,6 +265,7 @@ sub list_prototypes {
         $params->{template_set_name} = $app->registry('template_sets')->{$blog->template_set}->{label};
     }
     $params->{prototype_saved} = $q->param('prototype_saved');
+    $params->{screen_id}       = 'list-prototypes';
 
     my $code = sub {
         my ($obj, $row) = @_;
@@ -464,8 +551,8 @@ sub crop {
         return undef;
     }
     if ($cache_path =~ /^%r/) {
-        my $p = $blog->site_path;
-        $cache_path =~ s/%r/$p/;
+        my $site_path = $blog->site_path;
+        $cache_path =~ s/%r/$site_path/;
     }
     unless ($fmgr->can_write($cache_path)) {
         MT->log({   blog_id => $blog->id,
@@ -477,7 +564,6 @@ sub crop {
     if (!-d $cache_path) {
         # MT->log({ blog_id => $blog->id, message => "$cache_path is NOT a directory. Creating..." });
         require MT::FileMgr;
-        my $fmgr = $blog ? $blog->file_mgr : MT::FileMgr->new('Local');
         unless ($fmgr->mkpath($cache_path)) {
             MT->log({   blog_id => $blog->id,
                         message => "Can't mkpath: $cache_path" });
@@ -493,9 +579,9 @@ sub crop {
                                    $fmgr->errstr );
 
     if ($cropped_url =~ /^%r/) {
-        my $p        = $blog->site_url;
-        $p           = "$p/" if $p !~ /\/$/;
-        $cropped_url =~ s/%r\/?/$p/;
+        my $site_url   = $blog->site_url;
+        $site_url      =~ s{/?$}{/};
+        $cropped_url   =~ s{%r/?}{$site_url};
     }
     my $result = {
         error        => $error,
