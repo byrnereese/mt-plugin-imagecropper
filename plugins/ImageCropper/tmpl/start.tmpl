@@ -44,7 +44,7 @@
         var li = $(this).parent().parent();
         li.addClass('nothumb');
         var id = li.attr('id').substr( 'proto-'.length )
-        $.post("<mt:AdminCGIPath><mt:AdminScript>", {
+        $.post("<mt:var name="script_url">", {
             '__mode': "imagecropper_delete_crop",
             'blog_id':"<mt:var name="blog_id">",
             'id':asset_id,
@@ -92,7 +92,7 @@
       protos[ selected ].h = coords.h;
       var annotate = $('#include_annotation-field input:checked').val() == 1;
       $('#prototypes li#proto-'+selected).addClass('inprogress');
-      $.post("<mt:AdminCGIPath><mt:AdminScript>", {
+      $.post("<mt:var name="script_url">", {
           '__mode': "imagecropper_crop",
           'blog_id':"<mt:var name="blog_id">",
           'asset':asset_id,
