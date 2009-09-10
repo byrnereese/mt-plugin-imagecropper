@@ -130,9 +130,8 @@ sub find_prototype_id {
     return undef unless $ts;
     my $protos = MT->registry('template_sets')->{$ts}->{thumbnail_prototypes};
     foreach ( keys %$protos ) {
-
-        # MT->log({ message => "Looking for $label in $_" });
-        return $_ if ( &{ $protos->{$_}->{label} } eq $label );
+	my $l = $protos->{$_}->{label};
+        return $_ if ( $l && $l ne '' && &{$l} eq $label );
     }
 }
 
@@ -142,7 +141,7 @@ sub hdlr_cropped_asset {
     my $a       = $ctx->stash('asset');
     my $blog    = $ctx->stash('blog');
     my $blog_id = $args->{blog_id};
-    $blog_id = $blog_id unless $blog_id ne '';
+    $blog_id    = 0 unless $blog_id ne '';
 
     my $out;
     return $ctx->_no_asset_error() unless $a;
