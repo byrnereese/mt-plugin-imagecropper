@@ -24,6 +24,7 @@ sub post_remove_asset {
     foreach my $map (@maps) {
 	my $a = MT->model('asset')->load( $map->cropped_asset_id );
 	$a->remove if $a;
+	$map->remove if $map;
     }
     return 1;
 }
