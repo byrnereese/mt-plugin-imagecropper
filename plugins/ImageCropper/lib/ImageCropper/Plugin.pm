@@ -8,7 +8,7 @@ use warnings;
 
 use Carp qw( croak longmess confess );
 use MT::Util qw( relative_date    offset_time format_ts
-  offset_time_list epoch2ts    ts2epoch  );
+                 offset_time_list epoch2ts    ts2epoch  );
 use ImageCropper::Util qw( crop_filename crop_image annotate file_size );
 use Sub::Install;
 
@@ -17,6 +17,16 @@ use Sub::Install;
 # my $logger ||= MT::Log::Log4perl->new();
 
 my %target;
+
+sub post_remove_asset {
+    my ($cb, $obj) = @_;
+    my @maps = MT->model('thumbnail_prototype_map')->load({ asset_id => $obj->id });
+    foreach my $map (@maps) {
+	my $a = MT->model('asset')->load( $map->cropped_asset_id );
+	$a->remove if $a;
+    }
+    return 1;
+}
 
 # METHOD: init_app
 #
