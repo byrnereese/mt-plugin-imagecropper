@@ -26,6 +26,8 @@ sub post_remove_asset {
 	$a->remove if $a;
 	$map->remove if $map;
     }
+    my $ptmap = MT->model('thumbnail_prototype_map')->load({cropped_asset_id => $obj->id});
+    $ptmap->remove if $ptmap;
     return 1;
 }
 
