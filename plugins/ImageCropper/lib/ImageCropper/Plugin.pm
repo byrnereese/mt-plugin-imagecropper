@@ -154,7 +154,7 @@ sub hdlr_cropped_asset {
     my $a       = $ctx->stash('asset');
     my $blog    = $ctx->stash('blog');
     my $blog_id = $args->{blog_id};
-    $blog_id    = 0 unless $blog_id ne '';
+    $blog_id    = 0 unless ($blog_id && $blog_id ne '');
 
     my $out;
     return $ctx->_no_asset_error() unless $a;
