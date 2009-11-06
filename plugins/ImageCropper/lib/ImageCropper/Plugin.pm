@@ -7,8 +7,8 @@ use strict;
 use warnings;
 
 use Carp qw( croak longmess confess );
-use MT::Util qw( relative_date    offset_time format_ts
-                 offset_time_list epoch2ts    ts2epoch  );
+use MT::Util qw( relative_date    offset_time format_ts caturl
+                 offset_time_list epoch2ts    ts2epoch );
 use ImageCropper::Util qw( crop_filename crop_image annotate file_size );
 use Sub::Install;
 
@@ -495,26 +495,27 @@ sub crop {
             $prototype->$_( $p->{$_} );
         }
     }
-    my $cropped = crop_filename(
+    my @cropped_file_parts = crop_filename(
         $asset,
         Prototype => $key,
         Type      => $type,
     );
-
+    
     my ( $cache_path, $cache_url );
     my $archivepath = $blog->archive_path;
     my $archiveurl  = $blog->archive_url;
     $cache_path = $cache_url = $asset->_make_cache_path( undef, 1 );
     $cache_path =~ s!%a!$archivepath!;
-    $cache_url  =~ s!%a!$archiveurl!;
-    my $cropped_path = File::Spec->catfile( $cache_path, $cropped );
 
-#MT->log({ blog_id => $blog->id, message => "Cropped filename: $cropped_path" });
-    my $cropped_url = $cache_url . '/' . $cropped;
+    $cache_url  =~ s!%a!$archiveurl!;
+    my $cropped_path = File::Spec->catfile( $cache_path, @cropped_file_parts );
+
+    #MT->log({ blog_id => $blog->id, message => "Cropped filename: $cropped_path" });
+    my $cropped_url = caturl($cache_url,@cropped_file_parts);
 
     #MT->log({ blog_id => $blog->id, message => "Cropped URL: $cropped_url" });
     my ( $base, $path, $ext ) =
-      File::Basename::fileparse( $cropped, qr/[A-Za-z0-9]+$/ );
+      File::Basename::fileparse( File::Spec->catfile(@cropped_file_parts), qr/[A-Za-z0-9]+$/ );
 
     my $asset_cropped = new MT::Asset::Image;
     $asset_cropped->blog_id( $blog->id );

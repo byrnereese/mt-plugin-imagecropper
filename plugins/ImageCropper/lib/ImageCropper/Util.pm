@@ -120,7 +120,7 @@ sub crop_filename {
     $format =~ s/%f/$base/g;
     $format =~ s/%i/$id/g;
     $format =~ s/%x/$ext/g;
-    return $format;
+    return split(/[\/\\]/,$format);
 }
 
 1;
