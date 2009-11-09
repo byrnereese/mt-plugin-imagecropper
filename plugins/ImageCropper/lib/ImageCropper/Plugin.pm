@@ -650,7 +650,7 @@ sub crop {
         }
     }
 
-    $fmgr->put_data( $data, File::Spec->catfile( $cache_path, $cropped ),
+    $fmgr->put_data( $data, File::Spec->catfile( $cache_path, @cropped_file_parts ),
         'upload' )
       or $error =
       MT->translate( "Error creating cropped file: [_1]", $fmgr->errstr );
@@ -663,7 +663,7 @@ sub crop {
     my $result = {
         error        => $error,
         proto_key    => $key,
-        cropped      => $cropped,
+        cropped      => caturl(@cropped_file_parts),
         cropped_path => $cropped_path,
         cropped_url  => $cropped_url,
         cropped_size => file_size($asset_cropped),
