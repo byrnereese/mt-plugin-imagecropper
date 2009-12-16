@@ -3,7 +3,7 @@ name: 'Image Cropper'
 plugin_author: 'Endevver, LLC.'
 plugin_link: 'http://endevver.com/plugins/image-cropper/'
 description: "Allows users to define a set of thumbnail prototypes that others can easily generate using a drag-and-drop image cropping tool."
-version: 1.0.9
+version: 1.0.10
 schema_version: 7
 
 callbacks:
@@ -23,33 +23,32 @@ upgrade_functions:
                     $_[0]->prototype_key('custom_' . $pid);
                 }
 
-blog_config_template: '<mt:PluginConfigForm id="ImageCropper">'
-settings:
+options:
+  fieldsets:
+    defs:
+      label: Defaults
   default_compress:
+    type: select
+    label: 'Default Compression'
+    tag: 'DefaultCropperCompression'
+    values: 1,2,3,4,5,6,7,8,9,10
     scope: blog
     default: '6'
+    fieldset: defs
   annotate_fontfam:
     scope: blog
     default: 'Helvetica'
+    type: text
+    label: 'Annotation Font'
+    tag: 'CropperFontFamily'
+    fieldset: defs
   annotate_fontsize:
     scope: blog
     default: '10'
-plugin_config:
-  ImageCropper:
-    fieldset1:
-      default_compress:
-        type: select
-        label: 'Default Compression'
-        tag: 'DefaultCropperCompression'
-        values: 1,2,3,4,5,6,7,8,9,10
-      annotate_fontfam:
-        type: text
-        label: 'Annotation Font'
-        tag: 'CropperFontFamily'
-      annotate_fontsize:
-        type: text
-        label: 'Annotation Font Size'
-        tag: 'CropperFontSize'
+    type: text
+    label: 'Annotation Font Size'
+    tag: 'CropperFontSize'
+    fieldset: defs
 
 config_settings:
   DefaultCroppedImageText: 
