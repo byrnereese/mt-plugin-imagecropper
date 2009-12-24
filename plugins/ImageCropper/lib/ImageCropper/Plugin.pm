@@ -418,6 +418,8 @@ sub gen_thumbnails_start {
     $param->{actual_width}   = $obj->image_width;
     $param->{actual_height}  = $obj->image_height;
     $param->{has_prototypes} = $#loop >= 0;
+    $param->{asset_label}    = defined $obj->label  ? $obj->label 
+                                                    : $obj->file_name;
 
     my $tmpl = $app->load_tmpl( 'start.tmpl', $param );
     my $ctx = $tmpl->context;
