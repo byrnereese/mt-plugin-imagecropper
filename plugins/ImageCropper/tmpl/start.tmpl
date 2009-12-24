@@ -85,7 +85,7 @@
       jcrop.setSelect([ x, y, x+w, y+h ]);
     }
     function cropAsset() {
-      $.scrollTo("#step1", { duration : 500 });
+      $.scrollTo(0, { duration : 500 });
       if (!coords) { return; }
       //if (inprocess[selected]) { return; }
       inprocess[selected] = 1;
@@ -142,6 +142,19 @@
             <__trans phrase="You have no thumbnail prototypes defined. Please <a href="<mt:var name="script_url">?__mode=list_prototypes&blog_id=<$mt:var name="blog_id"$>">create some thumbnail prototypes</a>.">
         </mtapp:statusmsg>
 <mt:else>
+
+    <div class="actions-bar">
+      <div class="actions-bar-inner pkg actions">
+        <button
+         style="float: right"
+            type="button"
+            class="primary-button"
+            accesskey="s"
+            title="Return to the asset editing screen"
+            onclick="location.href = '?__mode=view&_type=asset&id=<$mt:AssetID$>&blog_id=<$mt:BlogID$>';">Return to asset</button>
+      </div>
+    </div>
+
 
 <h3 id="step1">1. Select a Thumbnail Prototype:</h3>
 
