@@ -8,6 +8,7 @@
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/ui.draggable.js"></script>
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.dimensions.js"></script>
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.scrollable-1.0.1.min.js"></script>
+    <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.scrollTo.min.js"></script>
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.Jcrop.js"></script>
     <script type="text/javascript">
     var coords;
@@ -40,6 +41,7 @@
         $('#prototypes li#proto-'+id).addClass('selected');
         selected = id;
         initCrop( p.max_width, p.max_height, p.x, p.y, p.w, p.h );
+        $.scrollTo("#step2", { duration : 1500 });
       });
       $('#prototypes li .proto_action a').click( function(e) {
         e.stopPropagation();
@@ -83,6 +85,7 @@
       jcrop.setSelect([ x, y, x+w, y+h ]);
     }
     function cropAsset() {
+      $.scrollTo("#step1", { duration : 500 });
       if (!coords) { return; }
       //if (inprocess[selected]) { return; }
       inprocess[selected] = 1;
@@ -140,7 +143,7 @@
         </mtapp:statusmsg>
 <mt:else>
 
-<h3>Select a Thumbnail Prototype:</h3>
+<h3 id="step1">1. Select a Thumbnail Prototype:</h3>
 
 <div id="selector" class="pkg">
 <a class="prev"></a>
@@ -165,6 +168,7 @@
 <a class="next"></a>
 </div>
 
+<h3 id="step2">2. Select your crop area:</h3>
 
 <div id="asset" style="width: <$mt:var name="box_width"$>; height: <$mt:var name="box_height"$>"><mt:section trim="1">
 <mt:setvarblock name="width"><$mt:AssetProperty property="image_width"$></mt:setvarblock>
@@ -175,6 +179,7 @@
 </mt:if>
 </mt:section></div>
 
+<h3 id="step3">3. Select additional crop options:</h3>
 
 <mtapp:setting
     id="include_annotation"
