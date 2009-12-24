@@ -7,8 +7,8 @@ use strict;
 use warnings;
 
 use Carp qw( croak longmess confess );
-use MT::Util qw( relative_date    offset_time format_ts caturl
-                 offset_time_list epoch2ts    ts2epoch );
+use MT::Util qw(    relative_date   ts2epoch format_ts     caturl
+                 offset_time_list   epoch2ts offset_time          );
 use ImageCropper::Util qw( crop_filename crop_image annotate file_size );
 use Sub::Install;
 
@@ -17,14 +17,17 @@ use Sub::Install;
 my %target;
 
 sub post_remove_asset {
-    my ($cb, $obj) = @_;
-    my @maps = MT->model('thumbnail_prototype_map')->load({ asset_id => $obj->id });
+    my ( $cb, $obj ) = @_;
+    my @maps =
+      MT->model('thumbnail_prototype_map')->load( { asset_id => $obj->id } );
     foreach my $map (@maps) {
-	my $a = MT->model('asset')->load( $map->cropped_asset_id );
-	$a->remove if $a;
-	$map->remove if $map;
+        my $a = MT->model('asset')->load( $map->cropped_asset_id );
+        $a->remove   if $a;
+        $map->remove if $map;
     }
-    my $ptmap = MT->model('thumbnail_prototype_map')->load({cropped_asset_id => $obj->id});
+    my $ptmap =
+      MT->model('thumbnail_prototype_map')
+      ->load( { cropped_asset_id => $obj->id } );
     $ptmap->remove if $ptmap;
     return 1;
 }
@@ -62,8 +65,7 @@ sub init_app {
               . 'This may have been caused by changes introduced by a '
               . 'Movable Type upgrade.',
             __PACKAGE__, join( '::', $target{module}, $target{method} ) );
-        $app->log(
-            {
+        $app->log( {
                 class    => 'system',
                 category => 'plugin',
                 level    => MT::Log::ERROR(),
@@ -78,8 +80,7 @@ sub init_app {
 
     # Override the target method with our own version
     require Sub::Install;
-    Sub::Install::reinstall_sub(
-        {
+    Sub::Install::reinstall_sub( {
             code => \&complete_upload_wrapper,
             into => $target{module},
             as   => $target{method},
@@ -141,7 +142,7 @@ sub find_prototype_id {
     return undef unless $ts;
     my $protos = MT->registry('template_sets')->{$ts}->{thumbnail_prototypes};
     foreach ( keys %$protos ) {
-	my $l = $protos->{$_}->{label};
+        my $l = $protos->{$_}->{label};
         return $_ if ( $l && $l ne '' && &{$l} eq $label );
     }
 }
@@ -152,14 +153,13 @@ sub hdlr_cropped_asset {
     my $a       = $ctx->stash('asset');
     my $blog    = $ctx->stash('blog');
     my $blog_id = $args->{blog_id};
-    $blog_id    = 0 unless ($blog_id && $blog_id ne '');
+    $blog_id    = 0 unless ( $blog_id && $blog_id ne '' );
 
     my $out;
     return $ctx->_no_asset_error() unless $a;
 
     my $map;
-    my $prototype = MT->model('thumbnail_prototype')->load(
-        {
+    my $prototype = MT->model('thumbnail_prototype')->load( {
             blog_id => $blog_id,
             label   => $l,
         }
@@ -167,8 +167,7 @@ sub hdlr_cropped_asset {
     if ($prototype) {
 
         # MT->log({ message => "prototype found: " . $prototype->id });
-        $map = MT->model('thumbnail_prototype_map')->load(
-            {
+        $map = MT->model('thumbnail_prototype_map')->load( {
                 prototype_key => 'custom_' . $prototype->id,
                 asset_id      => $a->id,
             }
@@ -176,9 +175,8 @@ sub hdlr_cropped_asset {
     }
     elsif ( my $id = find_prototype_id( $ctx, $l ) ) {
 
-    # MT->log({ message => "prototype not found, consulted registry: " . $id });
-        $map = MT->model('thumbnail_prototype_map')->load(
-            {
+  # MT->log({ message => "prototype not found, consulted registry: " . $id });
+        $map = MT->model('thumbnail_prototype_map')->load( {
                 prototype_key => $blog->template_set . "___" . $id,
                 asset_id      => $a->id,
             }
@@ -262,12 +260,12 @@ sub load_ts_prototypes {
     my @protos;
     if ( $blog->template_set ) {
         my $ts = $blog->template_set;
-        my $ps = $app->registry('template_sets')->{$ts}->{thumbnail_prototypes};
+        my $ps =
+          $app->registry('template_sets')->{$ts}->{thumbnail_prototypes};
         foreach ( keys %$ps ) {
             my $p = $ps->{$_};
             push @protos,
-              {
-                id           => $_,
+              { id           => $_,
                 type         => 'template_set',
                 key          => "$ts::$_",
                 template_set => $ts,
@@ -311,8 +309,7 @@ sub list_prototypes {
             $datetime_format,
             $ts,
             $app->blog || undef,
-            (
-                  $app->user
+            (     $app->user
                 ? $app->user->preferred_language
                 : undef
             )
@@ -324,8 +321,7 @@ sub list_prototypes {
 
     my $plugin = MT->component('ImageCropper');
 
-    $app->listing(
-        {
+    $app->listing( {
             type  => 'thumbnail_prototype',
             terms => { blog_id => ( $app->blog ? $app->blog->id : 0 ), },
             args  => {
@@ -355,8 +351,7 @@ sub gen_thumbnails_start {
       MT->model('thumbnail_prototype')->load( { blog_id => $app->blog->id } );
     foreach (@custom) {
         push @protos,
-          {
-            id         => $_->id,
+          { id         => $_->id,
             key        => 'custom_' . $_->id,
             label      => $_->label,
             max_width  => $_->max_width,
@@ -366,8 +361,7 @@ sub gen_thumbnails_start {
     my $tsprotos = load_ts_prototypes($app);
     foreach (@$tsprotos) {
         push @protos,
-          {
-            id         => $_->{template_set} . '___' . $_->{id},
+          { id         => $_->{template_set} . '___' . $_->{id},
             key        => $_->{template_set} . '___' . $_->{id},
             label      => $_->{label},
             max_width  => $_->{max_width},
@@ -376,8 +370,7 @@ sub gen_thumbnails_start {
     }
     my @loop;
     foreach my $p (@protos) {
-        my $map = MT->model('thumbnail_prototype_map')->load(
-            {
+        my $map = MT->model('thumbnail_prototype_map')->load( {
                 asset_id      => $obj->id,
                 prototype_key => $p->{key},
             }
@@ -418,8 +411,8 @@ sub gen_thumbnails_start {
     $param->{actual_width}   = $obj->image_width;
     $param->{actual_height}  = $obj->image_height;
     $param->{has_prototypes} = $#loop >= 0;
-    $param->{asset_label}    = defined $obj->label  ? $obj->label 
-                                                    : $obj->file_name;
+    $param->{asset_label}    = defined $obj->label ? $obj->label
+                                                   : $obj->file_name;
 
     my $tmpl = $app->load_tmpl( 'start.tmpl', $param );
     my $ctx = $tmpl->context;
@@ -434,8 +427,7 @@ sub delete_crop {
     my $id   = $q->param('id');
     my $key  = $q->param('prototype');
 
-    my $oldmap = MT->model('thumbnail_prototype_map')->load(
-        {
+    my $oldmap = MT->model('thumbnail_prototype_map')->load( {
             asset_id      => $id,
             prototype_key => $key,
         }
@@ -443,15 +435,14 @@ sub delete_crop {
     if ($oldmap) {
         my $oldasset = MT->model('asset')->load( $oldmap->cropped_asset_id );
         $oldasset->remove()
-          or MT->log(
-            {
+          or MT->log( {
                 blog_id => $blog->id,
-                message => "Error removing asset: " . $oldmap->cropped_asset_id
+                message => "Error removing asset: "
+                  . $oldmap->cropped_asset_id
             }
           );
         $oldmap->remove()
-          or MT->log(
-            {
+          or MT->log( {
                 blog_id => $blog->id,
                 message => "Error removing prototype map."
             }
@@ -500,22 +491,24 @@ sub crop {
         Prototype => $key,
         Type      => $type,
     );
-    
+
     my ( $cache_path, $cache_url );
     my $archivepath = $blog->archive_path;
     my $archiveurl  = $blog->archive_url;
     $cache_path = $cache_url = $asset->_make_cache_path( undef, 1 );
     $cache_path =~ s!%a!$archivepath!;
 
-    $cache_url  =~ s!%a!$archiveurl!;
-    my $cropped_path = File::Spec->catfile( $cache_path, @cropped_file_parts );
+    $cache_url =~ s!%a!$archiveurl!;
+    my $cropped_path =
+      File::Spec->catfile( $cache_path, @cropped_file_parts );
 
-    #MT->log({ blog_id => $blog->id, message => "Cropped filename: $cropped_path" });
-    my $cropped_url = caturl($cache_url,@cropped_file_parts);
+#MT->log({ blog_id => $blog->id, message => "Cropped filename: $cropped_path" });
+    my $cropped_url = caturl( $cache_url, @cropped_file_parts );
 
-    #MT->log({ blog_id => $blog->id, message => "Cropped URL: $cropped_url" });
+   #MT->log({ blog_id => $blog->id, message => "Cropped URL: $cropped_url" });
     my ( $base, $path, $ext ) =
-      File::Basename::fileparse( File::Spec->catfile(@cropped_file_parts), qr/[A-Za-z0-9]+$/ );
+      File::Basename::fileparse( File::Spec->catfile(@cropped_file_parts),
+        qr/[A-Za-z0-9]+$/ );
 
     my $asset_cropped = new MT::Asset::Image;
     $asset_cropped->blog_id( $blog->id );
@@ -536,8 +529,7 @@ sub crop {
     $asset_cropped->parent( $asset->id );
     $asset_cropped->save;
 
-    my $oldmap = MT->model('thumbnail_prototype_map')->load(
-        {
+    my $oldmap = MT->model('thumbnail_prototype_map')->load( {
             asset_id      => $asset->id,
             prototype_key => $key,
         }
@@ -548,8 +540,7 @@ sub crop {
 
 # MT->log({ blog_id => $blog->id, message => "Removing: " . $oldasset->label });
             $oldasset->remove()
-              or MT->log(
-                {
+              or MT->log( {
                     blog_id => $blog->id,
                     message => "Error removing asset: "
                       . $oldmap->cropped_asset_id
@@ -557,8 +548,7 @@ sub crop {
               );
         }
         $oldmap->remove()
-          or MT->log(
-            {
+          or MT->log( {
                 blog_id => $blog->id,
                 message => "Error removing prototype map."
             }
@@ -577,8 +567,7 @@ sub crop {
 
     require MT::Image;
     my $img = MT::Image->new( Filename => $asset->file_path )
-      or MT->log(
-        {
+      or MT->log( {
             blog_id => $blog->id,
             message => "Error loading image: " . MT::Image->errstr
         }
@@ -613,8 +602,7 @@ sub crop {
     require MT::FileMgr;
     my $fmgr = $blog ? $blog->file_mgr : MT::FileMgr->new('Local');
     unless ($fmgr) {
-        MT->log(
-            {
+        MT->log( {
                 blog_id => $blog->id,
                 message => "Unable to initialize File Manager"
             }
@@ -626,8 +614,7 @@ sub crop {
         $cache_path =~ s/%r/$site_path/;
     }
     unless ( $fmgr->can_write($cache_path) ) {
-        MT->log(
-            {
+        MT->log( {
                 blog_id => $blog->id,
                 message => "Can't write to: $cache_path"
             }
@@ -640,8 +627,7 @@ sub crop {
 # MT->log({ blog_id => $blog->id, message => "$cache_path is NOT a directory. Creating..." });
         require MT::FileMgr;
         unless ( $fmgr->mkpath($cache_path) ) {
-            MT->log(
-                {
+            MT->log( {
                     blog_id => $blog->id,
                     message => "Can't mkpath: $cache_path"
                 }
@@ -650,8 +636,8 @@ sub crop {
         }
     }
 
-    $fmgr->put_data( $data, File::Spec->catfile( $cache_path, @cropped_file_parts ),
-        'upload' )
+    $fmgr->put_data( $data,
+        File::Spec->catfile( $cache_path, @cropped_file_parts ), 'upload' )
       or $error =
       MT->translate( "Error creating cropped file: [_1]", $fmgr->errstr );
 

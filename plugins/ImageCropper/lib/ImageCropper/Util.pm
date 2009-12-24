@@ -81,10 +81,9 @@ sub annotate {
             $x   = 12;
         }
     }
-    MT->log(
-        {
+    MT->log( {
             message =>
-"Annotating image with text: '$txt' ($loc, $rot degrees, $family at $size pt.)"
+              "Annotating image with text: '$txt' ($loc, $rot degrees, $family at $size pt.)"
         }
     );
     my $err = $magick->Annotate(
@@ -120,7 +119,7 @@ sub crop_filename {
     $format =~ s/%f/$base/g;
     $format =~ s/%i/$id/g;
     $format =~ s/%x/$ext/g;
-    return split(/[\/\\]/,$format);
+    return split( /[\/\\]/, $format );
 }
 
 1;

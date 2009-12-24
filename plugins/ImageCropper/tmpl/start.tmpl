@@ -10,34 +10,36 @@
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.scrollable-1.0.1.min.js"></script>
     <script src="<mt:StaticWebPath>plugins/ImageCropper/js/jquery.Jcrop.js"></script>
     <script type="text/javascript">
-    var protos = Array();
-    var inprocess = Array();
     var coords;
-    var asset_id = <$mt:AssetID$>;
-    var selected = 0;
+    var protos    = Array();
+    var inprocess = Array();
+    var asset_id  = <$mt:AssetID$>;
+    var selected  = 0;
 <mt:loop name="prototype_loop">
-    protos['<$mt:var name="proto_key"$>'] = { 
-      'max_width': <$mt:var name="max_width"$>, 
-      'max_height': <$mt:var name="max_height"$>, 
-      'label': '<$mt:var name="proto_label" encode_js="1"$>', 
-      'size': '<$mt:var name="cropped_size"$>',
-      'x': <$mt:var name="cropped_x" default="0"$>, 'y': <$mt:var name="cropped_y" default="0"$>, 
-      'w': <$mt:var name="cropped_w" default="0"$>, 'h': <$mt:var name="cropped_h" default="0"$> 
+    protos['<$mt:var name="proto_key"$>'] = {
+      'max_width' : <$mt:var name="max_width"$>,
+      'max_height': <$mt:var name="max_height"$>,
+      'label'     : '<$mt:var name="proto_label" encode_js="1"$>',
+      'size'      : '<$mt:var name="cropped_size"$>',
+      'x'         : <$mt:var name="cropped_x" default="0"$>,
+      'y'         : <$mt:var name="cropped_y" default="0"$>,
+      'w'         : <$mt:var name="cropped_w" default="0"$>,
+      'h'         : <$mt:var name="cropped_h" default="0"$>
     };
 </mt:loop>
-    $(document).ready( function() {    
+    $(document).ready( function() {
       $('.scrollable').scrollable({ size: 4, items: 'ul', clickable: false });
-      $('#prototypes li').hover( 
+      $('#prototypes li').hover(
         function() { $(this).find('.proto_action').show(); },
         function() { $(this).find('.proto_action').hide(); }
       );
       $('#prototypes li').click( function() {
         var id = $(this).attr('id').substr( 'proto-'.length )
-    var p = protos[id];
-    $('#prototypes li#proto-'+selected).removeClass('selected');
-    $('#prototypes li#proto-'+id).addClass('selected');
+        var p = protos[id];
+        $('#prototypes li#proto-'+selected).removeClass('selected');
+        $('#prototypes li#proto-'+id).addClass('selected');
         selected = id;
-    initCrop( p.max_width, p.max_height, p.x, p.y, p.w, p.h );
+        initCrop( p.max_width, p.max_height, p.x, p.y, p.w, p.h );
       });
       $('#prototypes li .proto_action a').click( function(e) {
         e.stopPropagation();
@@ -45,10 +47,10 @@
         li.addClass('nothumb');
         var id = li.attr('id').substr( 'proto-'.length )
         $.post("<mt:var name="script_url">", {
-            '__mode': "imagecropper_delete_crop",
-            'blog_id':"<mt:var name="blog_id">",
-            'id':asset_id,
-            'prototype':id,
+            '__mode'    : "imagecropper_delete_crop",
+            'blog_id'   : "<mt:var name="blog_id">",
+            'id'        : asset_id,
+            'prototype' : id,
             'magic_token':'<mt:var name="magic_token">'
           },
           function(data){
@@ -61,11 +63,10 @@
       });
     });
     function toggleAnnotation( e ) {
-      if (e.checked) {
+      if (e.checked)
         $('#annotation-settings').slideDown();
-      } else {
+      else
         $('#annotation-settings').slideUp();
-      }
     };
     function setCoords(c) { coords = c; }
     var jcrop;
@@ -74,7 +75,7 @@
       jcrop = $.Jcrop('#asset img',{
         aspectRatio: ( max_w / max_h ), /* the size of the crop region */
         minSize    : [ max_w, max_h ],
-        boxWidth   : <$mt:var name="box_width"$>, 
+        boxWidth   : <$mt:var name="box_width"$>,
         boxHeight  : <$mt:var name="box_height"$>,
         trueSize   : [ <$mt:AssetProperty property="image_width"$>, <$mt:AssetProperty property="image_height"$> ],
         onSelect   : setCoords
@@ -93,29 +94,30 @@
       var annotate = $('#include_annotation-field input:checked').val() == 1;
       $('#prototypes li#proto-'+selected).addClass('inprogress');
       $.post("<mt:var name="script_url">", {
-          '__mode': "imagecropper_crop",
-          'blog_id':"<mt:var name="blog_id">",
-          'asset':asset_id,
-          'key':selected,
-          'x':coords.x,
-          'y':coords.y,
-          'w':coords.w,
-          'h':coords.h,
-          'type':$('#type-field select').val(),
-          'quality':$('#quality-field select').val(),
-          'annotate':annotate ? 1 : 0,
-          'text':$('#annotation-field input').val(),
-          'text_size':$('#annotation_size-field input').val(),
-          'text_loc':$('#annotation_loc-field select').val(),
-          'text_rot':$('#annotation_rot-field select').val(),
+          '__mode'   : "imagecropper_crop",
+          'blog_id'  : "<mt:var name="blog_id">",
+          'asset'    : asset_id,
+          'key'      : selected,
+          'x'        : coords.x,
+          'y'        : coords.y,
+          'w'        : coords.w,
+          'h'        : coords.h,
+          'type'     : $('#type-field select').val(),
+          'quality'  : $('#quality-field select').val(),
+          'annotate' : annotate ? 1 : 0,
+          'text'     : $('#annotation-field input').val(),
+          'text_size': $('#annotation_size-field input').val(),
+          'text_loc' : $('#annotation_loc-field select').val(),
+          'text_rot' : $('#annotation_rot-field select').val(),
           'magic_token':'<mt:var name="magic_token">'
         },
         function(data){
           inprocess[data.proto_key] = 0;
-      var li = $('#prototypes li#proto-'+data.proto_key);
-      li.removeClass('inprogress');
-          li.find('.proto_preview').html('<img src="'+ data.cropped_url + '?' + Math.random() +'" width="175" />' );
-      li.removeClass('nothumb');
+          var li = $('#prototypes li#proto-'+data.proto_key);
+          li.removeClass('inprogress');
+          li.find('.proto_preview')
+            .html('<img src="'+ data.cropped_url + '?' + Math.random() +'" width="175" />' );
+          li.removeClass('nothumb');
           li.find('.proto_size').html(data.cropped_size);
         },
         "json"
@@ -172,6 +174,7 @@
 <img src="<$mt:AssetThumbnailURL width="900"$>" />
 </mt:if>
 </mt:section></div>
+
 
 <mtapp:setting
     id="include_annotation"
