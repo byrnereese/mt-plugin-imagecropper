@@ -12,9 +12,7 @@ use MT::Util qw( relative_date    offset_time format_ts caturl
 use ImageCropper::Util qw( crop_filename crop_image annotate file_size );
 use Sub::Install;
 
-# use MT::Log::Log4perl qw( l4mtdump );
-# use Log::Log4perl::Resurrector;
-# my $logger ||= MT::Log::Log4perl->new();
+# use MT::Log::Log4perl qw( l4mtdump ); use Log::Log4perl qw( :resurrect ); my $logger ||= MT::Log::Log4perl->new();
 
 my %target;
 
@@ -38,7 +36,7 @@ sub post_remove_asset {
 sub init_app {
     my ( $plugin, $app ) = @_;
 
-    # $logger ||= MT::Log::Log4perl->new(); $logger->trace();
+    ###l4p $logger ||= MT::Log::Log4perl->new(); $logger->trace();
 
     # This plugin operates by overriding the method
     # (MT::CMS::Asset::complete_upload)
@@ -75,8 +73,8 @@ sub init_app {
         return undef;    # We simply can't go on....
     }
 
-    # $logger->debug( 'Overriding method: '
-    #               . join('::', $target{module}, $target{method}));
+    ###l4p $logger->debug( 'Overriding method: '
+    ###l4p               . join('::', $target{module}, $target{method}));
 
     # Override the target method with our own version
     require Sub::Install;
@@ -93,7 +91,7 @@ sub complete_upload_wrapper {
     my $app      = shift;
     my $asset_id = $app->param('id');
 
-    # $logger     ||= MT::Log->get_logger();  $logger->trace();
+    ###l4p $logger     ||= MT::Log->get_logger();  $logger->trace();
 
     # Call the original method to perform the work
     $target{subref}->( $app, @_ );
