@@ -18,7 +18,6 @@ __PACKAGE__->install_properties( {
         },
         audit   => 1,
         indexes => {
-            id      => 1,
             blog_id => 1,
             labels  => { columns => [ 'blog_id', 'label' ], },
         },

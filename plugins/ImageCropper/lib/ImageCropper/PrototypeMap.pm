@@ -23,7 +23,6 @@ __PACKAGE__->install_properties( {
             'cropped_y' => 0,
         },
         indexes => {
-            id            => 1,
             prototype_key => 1,
             asset_id      => 1,
         },
