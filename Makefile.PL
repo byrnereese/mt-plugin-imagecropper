@@ -1,7 +1,12 @@
 use ExtUtils::MakeMaker;
 
+use YAML::Any qw(LoadFile);
+my $file = "plugins/ImageCropper/config.yaml";
+my $version = LoadFile($file)->{version} ||
+    die "No version found in $file";
+
 WriteMakefile(
     NAME            => 'ImageCropper',
-    VERSION         => '1.0.12',
+    VERSION         => $version,
     DISTNAME        => 'ImageCropper',
 );
