@@ -150,22 +150,22 @@ sub find_prototype_id {
 sub hdlr_cropped_asset {
     my ( $ctx, $args, $cond ) = @_;
     my $l       = $args->{label};
-    my $a       = $ctx->stash('asset');
-    my $blog    = $ctx->stash('blog');
-    my $blog_id = defined $args->{blog_id} ? $args->{blog_id}
-                : ref $blog                ? $blog->id
-                                           : 0;
-    my $out;
-    return $ctx->_no_asset_error() unless $a;
-
-    my $map;
+    my $a       = $ctx->stash('asset')
+        or return $ctx->_no_asset_error();
+    
+    my $blog    =  $ctx->stash('blog')
+                || MT->model('blog')->load( $a->blog_id );
+    my $blog_id = defined $args->{blog_id}  ? $args->{blog_id}
+                : defined $a->blog_id       ? $a->blog_id
+                : ref $blog                 ? $blog->id
+                                            : 0;
+    my ($out, $map);
     my $prototype = MT->model('thumbnail_prototype')->load( {
             blog_id => $blog_id,
             label   => $l,
         }
     );
     if ($prototype) {
-
         # MT->log({ message => "prototype found: " . $prototype->id });
         $map = MT->model('thumbnail_prototype_map')->load( {
                 prototype_key => 'custom_' . $prototype->id,
