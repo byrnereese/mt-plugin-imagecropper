@@ -1,4 +1,4 @@
-# Image Cropper Plugin for Movable Type
+# Image Cropper Plugin for Movable Type #
 
 The Image Cropper Plugin for Movable Type provides a simple
 user interface for managing and generating custom thumbnails
@@ -18,7 +18,7 @@ plugin allows you place some text on the image accordingly.
 
 This utility facilitates that process.
 
-# Features
+## Features ##
 
 * Define a set of "prototypes" which in essence are a prescribed
   set of allowable thumbnail sizes.
@@ -36,13 +36,13 @@ This utility facilitates that process.
 * Hooks for designers to define thumbnail prototypes for their
   themes and template sets so that their users don't have to.
 
-# Installation
+## Installation ##
 
 To install this plugin follow the instructions found here:
 
 http://tinyurl.com/easy-plugin-install
 
-# Usage
+## Usage ##
 
 **Managing "Prototypes"**
 
@@ -90,12 +90,12 @@ just that:
       </mt:CroppedAsset>
     </mt:Asset>
 
-# Config Directives
+## Config Directives ##
 
 * **`DefaultCroppedImageText`** - Determines the default text to be
   used when annotating images.
 
-# Template Tags
+## Template Tags ##
 
 * `<$mt:DefaultCroppedImageText$>` - Returns the default cropped image
    text as specified by the DefaultCroppedImageText config parameter.
@@ -107,7 +107,7 @@ just that:
 
   * `label` - The label to filter by.
 
-# Designer Guide
+## Designer Guide ##
 
 The Image Cropper plugin exposes a simple set of hooks that can be
 embedded in a theme's `config.yaml` file so that designers can specify 
@@ -138,7 +138,25 @@ As you can see you can define one or more prototypes easily for a theme.
 Designers can specify the label for the prototype as well as its 
 dimensions.
 
-# About Endevver
+## Help, Bugs and Feature Requests ##
+
+If you are having problems installing or using the plugin, please check out our general knowledge base and help ticket system at [help.endevver.com](http://help.endevver.com).
+
+If you know that you've encountered a bug in the plugin or you have a request for a feature you'd like to see, you can file a ticket in the [Image Cropper project](https://endevver.lighthouseapp.com/projects/34923-image-cropper) in our issue tracking system and we'll get to it as soon as possible.
+
+## Copyright ##
+
+This plugin was created from the kind support of 
+Talking Points Memo (http://www.talkingpointsmemo.com/), who
+supports and appreciates open source. We <3 TPM.
+
+Copyright 2009, Endevver, LLC. All rights reserved.
+
+## License ##
+
+This plugin is licensed under the GPL v2.
+
+# About Endevver #
 
 We design and develop web sites, products and services with a focus on 
 simplicity, sound design, ease of use and community. We specialize in 
@@ -147,14 +165,3 @@ make the most of this powerful publishing platform.
 
 http://www.endevver.com/
 
-# Copyright
-
-This plugin was created from the kind support of 
-Talking Points Memo (http://www.talkingpointsmemo.com/), who
-supports and appreciates open source. We <3 TPM.
-
-Copyright 2009, Endevver, LLC. All rights reserved.
-
-# License
-
-This plugin is licensed under the GPL v2.
