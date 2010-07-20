@@ -2,7 +2,7 @@ package ImageCropper::Util;
 
 use strict;
 use base 'Exporter';
-our @EXPORT_OK = qw( crop_filename crop_image annotate file_size );
+our @EXPORT_OK = qw( crop_filename crop_image annotate file_size find_prototype_id find_cropped_asset );
 
 sub file_size {
     my $a     = shift;
@@ -121,5 +121,52 @@ sub crop_filename {
     $format =~ s/%x/$ext/g;
     return split( /[\/\\]/, $format );
 }
+
+sub find_prototype_id {
+    my ( $ts, $label ) = @_;
+    return undef unless $ts;
+    my $protos = MT->registry('template_sets')->{$ts}->{thumbnail_prototypes};
+    foreach ( keys %$protos ) {
+        my $l = $protos->{$_}->{label};
+        return $_ if ( $l && $l ne '' && &{$l} eq $label );
+    }
+}
+
+sub find_cropped_asset {
+    my ( $blog_id, $asset, $label ) = @_;
+    $blog_id    = 0 unless ( $blog_id && $blog_id ne '' );
+    my $blog    = MT->model('blog')->find($blog_id);
+    my $ts      = $blog->template_set;
+
+    my $map;
+    my $prototype = MT->model('thumbnail_prototype')->load( {
+            blog_id => $blog_id,
+            label   => $label,
+        }
+    );
+    if ($prototype) {
+        # MT->log({ message => "prototype found: " . $prototype->id });
+        $map = MT->model('thumbnail_prototype_map')->load( {
+                prototype_key => 'custom_' . $prototype->id,
+                asset_id      => $asset->id,
+            }
+        );
+    }
+    elsif ( my $id = find_prototype_id( $ts, $label ) ) {
+
+        # MT->log({ message => "prototype not found, consulted registry: " . $id });
+        $map = MT->model('thumbnail_prototype_map')->load( {
+                prototype_key => $ts . "___" . $id,
+                asset_id      => $asset->id,
+            }
+        );
+    }
+
+    if ($map) {
+        return MT->model('asset')->load( $map->cropped_asset_id );
+    }
+    return undef;
+}
+
 
 1;

@@ -154,42 +154,16 @@ sub hdlr_cropped_asset {
     my $blog    = $ctx->stash('blog');
     my $blog_id = $args->{blog_id};
     $blog_id    = 0 unless ( $blog_id && $blog_id ne '' );
+    my $ts      = $blog->template_set;
 
     my $out;
     return $ctx->_no_asset_error() unless $a;
 
-    my $map;
-    my $prototype = MT->model('thumbnail_prototype')->load( {
-            blog_id => $blog_id,
-            label   => $l,
-        }
-    );
-    if ($prototype) {
-
-        # MT->log({ message => "prototype found: " . $prototype->id });
-        $map = MT->model('thumbnail_prototype_map')->load( {
-                prototype_key => 'custom_' . $prototype->id,
-                asset_id      => $a->id,
-            }
-        );
-    }
-    elsif ( my $id = find_prototype_id( $ctx, $l ) ) {
-
-  # MT->log({ message => "prototype not found, consulted registry: " . $id });
-        $map = MT->model('thumbnail_prototype_map')->load( {
-                prototype_key => $blog->template_set . "___" . $id,
-                asset_id      => $a->id,
-            }
-        );
-    }
-
-    if ($map) {
-        my $cropped = MT->model('asset')->load( $map->cropped_asset_id );
-        if ($cropped) {
-            local $ctx->{__stash}{'asset'} = $cropped;
-            defined( $out = $ctx->slurp( $args, $cond ) ) or return;
-            return $out;
-        }
+    my $cropped_asset = find_cropped_asset($blog_id,$a,$l);
+    if ($cropped_asset) {
+        local $ctx->{__stash}{'asset'} = $cropped_asset;
+        defined( $out = $ctx->slurp( $args, $cond ) ) or return;
+        return $out;
     }
     return _hdlr_pass_tokens_else(@_);
 }
